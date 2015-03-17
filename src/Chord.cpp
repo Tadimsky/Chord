@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdio>
 #include <sha.h>
+#include <memory>
 #include "Chord.h"
 #include "utils/csapp.h"
 
@@ -51,6 +52,9 @@ int main(int argc, const char* argv[]) {
 
 	listen_port = atoi(port.c_str());
 
+	unique_ptr<Chord> chord(new Chord(listen_port));
+	chord->test();
+
 
 	byte output[CryptoPP::SHA1::DIGESTSIZE];
 	string value = "test";
@@ -74,11 +78,19 @@ void showUsageMessage(string procname) {
 	exit(1);
 }
 
-Chord::Chord() {
-	// TODO Auto-generated constructor stub
+Chord::Chord(int port) {
+	myListenPort = port;
+	myListenFD = Open_listenfd(port);
+
+	cout << "Chord listening on Port " << myListenPort << endl;
 }
 
 Chord::~Chord() {
 	// TODO Auto-generated destructor stub
+	Close(myListenFD);
+}
+
+void Chord::test() {
+	cout << "Fool " << myListenFD <<  endl;
 }
 

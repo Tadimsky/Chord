@@ -13,9 +13,14 @@ typedef unsigned char byte;
 void showUsageMessage(std::string procname);
 
 class Chord {
+private:
+	int myListenFD;
+	int myListenPort;
+
 public:
-	Chord();
+	Chord(int port);
 	virtual ~Chord();
+	void test();
 };
 
 #endif /* CHORD_H_ */
