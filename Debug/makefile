@@ -44,7 +44,7 @@ all: Chord
 Chord: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++  -o "Chord" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"/home/jonno/c-workspace/Chord/lib/cryptopp" -o "Chord" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
