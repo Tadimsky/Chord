@@ -258,7 +258,7 @@ int Listen(int s, int backlog)
     return rc;
 }
 
-int Accept(int s, struct sockaddr *addr, int *addrlen) 
+int Accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 {
     int rc;
 
@@ -468,7 +468,7 @@ ssize_t rio_readn(int fd, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nread;
-    char *bufp = usrbuf;
+    char *bufp = (char*)usrbuf;
 
     while (nleft > 0) {
 	if ((nread = read(fd, bufp, nleft)) < 0) {
@@ -494,7 +494,7 @@ ssize_t rio_writen(int fd, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nwritten;
-    char *bufp = usrbuf;
+    char *bufp = (char*)usrbuf;
 
     while (nleft > 0) {
 	if ((nwritten = write(fd, bufp, nleft)) <= 0) {
@@ -568,7 +568,7 @@ ssize_t rio_readnb(rio_t *rp, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nread;
-    char *bufp = usrbuf;
+    char *bufp = (char*)usrbuf;
     
     while (nleft > 0) {
 	if ((nread = rio_read(rp, bufp, nleft)) < 0) {
@@ -593,7 +593,7 @@ ssize_t rio_readnb(rio_t *rp, void *usrbuf, size_t n)
 ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen) 
 {
     int n, rc;
-    char c, *bufp = usrbuf;
+    char c, *bufp = (char*)usrbuf;
 
     n = 0;
 
@@ -788,7 +788,7 @@ int Open_clientfd(char *hostname, int port)
     return rc;
 }
 
-int Open_listenfd(int port) 
+int Open_listenfd(int port)
 {
     int rc;
 

@@ -8,15 +8,17 @@
 #include <iostream>
 #include <cstdio>
 #include <sha.h>
-#include "utils/csapp.h"
 #include "Chord.h"
+#include "utils/csapp.h"
 
 using namespace std;
 
 int main(int argc, const char* argv[]) {
 	string port;
-	string entry_ip;
-	string entry_port;
+	string entry_ip, entry_port;
+
+	int listen_port;
+	int listenfd;
 
 	if (argc < 2) {
 		showUsageMessage(argv[0]);
@@ -47,6 +49,7 @@ int main(int argc, const char* argv[]) {
 		// this is connecting to a node
 	}
 
+	listen_port = atoi(port.c_str());
 
 
 	byte output[CryptoPP::SHA1::DIGESTSIZE];
@@ -73,7 +76,6 @@ void showUsageMessage(string procname) {
 
 Chord::Chord() {
 	// TODO Auto-generated constructor stub
-
 }
 
 Chord::~Chord() {

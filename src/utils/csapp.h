@@ -97,7 +97,7 @@ int Socket(int domain, int type, int protocol);
 int Setsockopt(int s, int level, int optname, const void *optval, int optlen);
 int Bind(int sockfd, struct sockaddr *my_addr, int addrlen);
 int Listen(int s, int backlog);
-int Accept(int s, struct sockaddr *addr, int *addrlen);
+int Accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 int Connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
 
 /* DNS wrappers */
