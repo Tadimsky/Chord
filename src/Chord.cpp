@@ -8,8 +8,10 @@
 
 #include <iostream>
 #include <cstdio>
-#include "../lib/cryptopp/sha.h"
+#include <sha.h>
 using namespace std;
+
+typedef unsigned char byte;
 
 int main() {
 	byte output[CryptoPP::SHA1::DIGESTSIZE];
