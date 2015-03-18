@@ -9,88 +9,72 @@
 #include <cstdio>
 #include <sha.h>
 #include <memory>
+#include <thread>
 #include "Chord.h"
+#include "Node.h"
 #include "utils/csapp.h"
 
 using namespace std;
 
-int main(int argc, const char* argv[]) {
-	string port;
-	string entry_ip, entry_port;
-
-	int listen_port;
-	int listenfd;
-
-	if (argc < 2) {
-		showUsageMessage(argv[0]);
+void Chord::Listen() {
+	myListenFD = Open_listenfd(myListenPort);
+	if (myListenFD < 0) {
+		exit(-1);
 	}
 
-	// port to listen on
-	if (argc > 1) {
-		port = argv[1];
-	}
-	// connecting to an entry point
-	if (argc > 2) {
-		entry_ip = argv[2];
-	}
-	// entry point port
-	if (argc > 3) {
-		entry_port = argv[3];
-	}
+	int optval = 1;
+	setsockopt(myListenFD, SOL_SOCKET, SO_REUSEADDR, (const void *) &optval, sizeof(int));
 
-	if (!entry_ip.empty() && entry_port.empty()) {
-		showUsageMessage(argv[0]);
-	}
+	cout << "Chord listening on Port " << myListenPort << endl;
 
-	if (entry_ip.empty()) {
-		// this is the start of a new circle
-	}
+	socklen_t client_len;
+	struct sockaddr_in client_addr;
 
-	if (!entry_ip.empty() && !entry_port.empty()) {
-		// this is connecting to a node
+	int newConnection;
+
+	thread clientThread;
+
+	while (true) {
+		client_len = sizeof(client_addr);
+		newConnection = Accept(myListenFD, (sockaddr*)&client_addr, &client_len);
+
+		cout << "Connection! " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << endl;
+
+		clientThread = thread(&Chord::handleRequest, this, 1, client_addr);
 	}
 
-	listen_port = atoi(port.c_str());
-
-	unique_ptr<Chord> chord(new Chord(listen_port));
-	chord->test();
-
-
-	byte output[CryptoPP::SHA1::DIGESTSIZE];
-	string value = "test";
-	CryptoPP::SHA1().CalculateDigest(output, (byte*) value.c_str(),
-			value.length());
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
-	fprintf(stdout, "Hash: %s\n", output);
-	return 0;
-}
-
-void showUsageMessage(string procname) {
-	cerr << "To run Chord, you need to provide a port to listen on." << endl;
-	cerr << "\tUsage: " << procname << " port" << endl;
-	cerr << "\tExample: " << procname << " 8001" << endl;
-	cerr
-			<< "If you are connecting to an existing Chord network, use the following:"
-			<< endl;
-	cerr << "\t" << procname
-			<< " port [entry point IP address] [entry point port]" << endl;
-	cerr << "\tExample: " << procname << " 8001 128.2.205.42 8010" << endl;
-	exit(1);
 }
 
 Chord::Chord(int port) {
 	myListenPort = port;
-	myListenFD = Open_listenfd(port);
-
-	cout << "Chord listening on Port " << myListenPort << endl;
+	myListenFD = 0;
 }
 
 Chord::~Chord() {
-	// TODO Auto-generated destructor stub
 	Close(myListenFD);
 }
 
-void Chord::test() {
-	cout << "Fool " << myListenFD <<  endl;
+
+void Chord::JoinRing(std::string entry_ip, int entry_port) {
+	// do something with this information
 }
 
+void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
+	cout << "Processing connection." << endl;
+}
+
+chord_key Chord::hashKey(std::string value) {
+	byte output[CryptoPP::SHA1::DIGESTSIZE];
+	CryptoPP::SHA1().CalculateDigest(output, (byte*) value.c_str(), value.length());
+
+	chord_key resultKey = 0 - 1;
+	// 20 byte SHA key
+	// turn it into a 4 byte key
+	for (unsigned int i = 0; i < sizeof(output); i += 4) {
+		chord_key current;
+		memcpy(&current, (void*)(output + i), 4);
+		resultKey = resultKey ^ current;
+	}
+
+	return resultKey;
+}
