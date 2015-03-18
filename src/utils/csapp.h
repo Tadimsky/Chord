@@ -128,22 +128,32 @@ int Pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex,
 			   struct timespec *abstime);
 
 /* Rio (Robust I/O) package */
-ssize_t rio_readp(int fd, void *ptr, size_t nbytes);
-ssize_t rio_writep(int fd, void *ptr, size_t nbytes);
-ssize_t rio_readn(int fd, void *usrbuf, size_t n);
-ssize_t rio_writen(int fd, void *usrbuf, size_t n);
-void rio_readinitb(rio_t *rp, int fd); 
-ssize_t	rio_readnb(rio_t *rp, void *usrbuf, size_t n);
-ssize_t	rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
 
-/* Wrappers for Rio package */
-ssize_t Rio_readp(int fd, void *ptr, size_t nbytes);
-size_t Rio_writep(int fd, void *usrbuf, size_t n);
-ssize_t Rio_readn(int fd, void *usrbuf, size_t n);
-size_t Rio_writen(int fd, void *usrbuf, size_t n);
-void Rio_readinitb(rio_t *rp, int fd); 
-ssize_t Rio_readnb(rio_t *rp, void *usrbuf, size_t n);
-ssize_t Rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
+class RIOHelper {
+public:
+	static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n);
+	static ssize_t rio_readp(int fd, void *ptr, size_t nbytes);
+	static ssize_t rio_writep(int fd, void *ptr, size_t nbytes);
+	static ssize_t rio_readn(int fd, void *usrbuf, size_t n);
+	static ssize_t rio_writen(int fd, void *usrbuf, size_t n);
+	static void rio_readinitb(rio_t *rp, int fd);
+	static ssize_t	rio_readnb(rio_t *rp, void *usrbuf, size_t n);
+	static ssize_t	rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
+};
+
+class RIO {
+public:
+	/* Wrappers for Rio package */
+	static ssize_t readp(int fd, void *ptr, size_t nbytes);
+	static size_t writep(int fd, void *usrbuf, size_t n);
+	static ssize_t readn(int fd, void *usrbuf, size_t n);
+	static size_t writen(int fd, void *usrbuf, size_t n);
+	static void readinitb(rio_t *rp, int fd);
+	static ssize_t readnb(rio_t *rp, void *usrbuf, size_t n);
+	static ssize_t readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
+};
+
+
 
 /* Client/server helper functions */
 int open_clientfd(char *hostname, int portno);

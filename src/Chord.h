@@ -23,6 +23,7 @@ class Chord {
 private:
 	const int NUM_PREDECESSORS = 2;
 	const int NUM_SUCCESSORS = 2;
+	const std::string WELCOME_MESSAGE = "Welcome! Go Ahead.\n";
 
 	int myListenFD;
 	int myListenPort;

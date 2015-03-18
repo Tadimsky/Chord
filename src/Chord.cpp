@@ -38,9 +38,9 @@ void Chord::Listen() {
 		client_len = sizeof(client_addr);
 		newConnection = Accept(myListenFD, (sockaddr*)&client_addr, &client_len);
 
-		cout << "Connection! " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << endl;
+		cout << "New Connection! " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << endl;
 
-		clientThread = thread(&Chord::handleRequest, this, 1, client_addr);
+		clientThread = thread(&Chord::handleRequest, this, newConnection, client_addr);
 	}
 
 }
@@ -61,6 +61,17 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 
 void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	cout << "Processing connection." << endl;
+	rio_t connection;
+
+	RIO::readinitb(&connection, socket_fd);
+	RIO::writep(socket_fd, (void*)Chord::WELCOME_MESSAGE.c_str(), Chord::WELCOME_MESSAGE.length());
+
+	char msg[RIO_BUFSIZE];
+
+	RIO::readlineb(&connection, (void*)msg, RIO_BUFSIZE);
+
+	cout << msg << endl;
+
 }
 
 chord_key Chord::hashKey(std::string value) {

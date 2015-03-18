@@ -433,7 +433,7 @@ int Pthread_cond_timedwait(pthread_cond_t *cond,
 /* wrapper for "plain" read function --
    does nothing more than check for EINTR */
 
-ssize_t rio_readp(int fd, void *ptr, size_t nbytes)
+ssize_t RIOHelper::rio_readp(int fd, void *ptr, size_t nbytes)
 {
   int n;
   while(1){
@@ -448,7 +448,7 @@ ssize_t rio_readp(int fd, void *ptr, size_t nbytes)
 /* wrapper for "plain" write function --
    does nothing more than check for EINTR */
 
-ssize_t rio_writep(int fd, void *ptr, size_t nbytes)
+ssize_t RIOHelper::rio_writep(int fd, void *ptr, size_t nbytes)
 {
   int n;
   while(1){
@@ -464,7 +464,7 @@ ssize_t rio_writep(int fd, void *ptr, size_t nbytes)
  * rio_readn - robustly read n bytes (unbuffered)
  */
 /* $begin rio_readn */
-ssize_t rio_readn(int fd, void *usrbuf, size_t n) 
+ssize_t RIOHelper::rio_readn(int fd, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nread;
@@ -490,7 +490,7 @@ ssize_t rio_readn(int fd, void *usrbuf, size_t n)
  * rio_writen - robustly write n bytes (unbuffered)
  */
 /* $begin rio_writen */
-ssize_t rio_writen(int fd, void *usrbuf, size_t n) 
+ssize_t RIOHelper::rio_writen(int fd, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nwritten;
@@ -520,7 +520,7 @@ ssize_t rio_writen(int fd, void *usrbuf, size_t n)
  *    read() if the internal buffer is empty.
  */
 /* $begin rio_read */
-static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)
+ssize_t RIOHelper::rio_read(rio_t *rp, char *usrbuf, size_t n)
 {
     int cnt;
 
@@ -552,7 +552,7 @@ static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)
  * rio_readinitb - Associate a descriptor with a read buffer and reset buffer
  */
 /* $begin rio_readinitb */
-void rio_readinitb(rio_t *rp, int fd) 
+void RIOHelper::rio_readinitb(rio_t *rp, int fd)
 {
     rp->rio_fd = fd;  
     rp->rio_cnt = 0;  
@@ -564,14 +564,14 @@ void rio_readinitb(rio_t *rp, int fd)
  * rio_readnb - Robustly read n bytes (buffered)
  */
 /* $begin rio_readnb */
-ssize_t rio_readnb(rio_t *rp, void *usrbuf, size_t n) 
+ssize_t RIOHelper::rio_readnb(rio_t *rp, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nread;
     char *bufp = (char*)usrbuf;
     
     while (nleft > 0) {
-	if ((nread = rio_read(rp, bufp, nleft)) < 0) {
+	if ((nread = RIOHelper::rio_read(rp, bufp, nleft)) < 0) {
 	    if (errno == EINTR) /* interrupted by sig handler return */
 		nread = 0;      /* call read() again */
 	    else
@@ -590,7 +590,7 @@ ssize_t rio_readnb(rio_t *rp, void *usrbuf, size_t n)
  * rio_readlineb - robustly read a text line (buffered)
  */
 /* $begin rio_readlineb */
-ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen) 
+ssize_t RIOHelper::rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
 {
     int n, rc;
     char c, *bufp = (char*)usrbuf;
@@ -598,7 +598,7 @@ ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
     n = 0;
 
     while (n < maxlen-1){
-	if ((rc = rio_read(rp, &c, 1)) == 1) {
+	if ((rc = RIOHelper::rio_read(rp, &c, 1)) == 1) {
 	  n++;
 	  *bufp++ = c;
 	  if (c == '\n')
@@ -617,11 +617,11 @@ ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
  * Wrappers for robust I/O routines
  **********************************/
 
-ssize_t Rio_readp(int fd, void *ptr, size_t nbytes) 
+ssize_t RIO::readp(int fd, void *ptr, size_t nbytes)
 {
     ssize_t n;
   
-    if ((n = rio_readp(fd, ptr, nbytes)) < 0) {
+    if ((n = RIOHelper::rio_readp(fd, ptr, nbytes)) < 0) {
         if (errno != EPIPE)
 	   log_unix_error("Rio_readp error");
 	else {
@@ -633,11 +633,11 @@ ssize_t Rio_readp(int fd, void *ptr, size_t nbytes)
     return n;
 }
 
-size_t Rio_writep(int fd, void *usrbuf, size_t n) 
+size_t RIO::writep(int fd, void *usrbuf, size_t n)
 {
     size_t rc;
 
-    if ((rc = rio_writep(fd, usrbuf, n)) != n) {
+    if ((rc = RIOHelper::rio_writep(fd, usrbuf, n)) != n) {
         if (errno != EPIPE)
 	   log_unix_error("Rio_writep error");
 	else {
@@ -648,11 +648,11 @@ size_t Rio_writep(int fd, void *usrbuf, size_t n)
     return rc;
 }
 
-ssize_t Rio_readn(int fd, void *ptr, size_t nbytes) 
+ssize_t RIO::readn(int fd, void *ptr, size_t nbytes)
 {
     ssize_t n;
   
-    if ((n = rio_readn(fd, ptr, nbytes)) < 0) {
+    if ((n = RIOHelper::rio_readn(fd, ptr, nbytes)) < 0) {
         if (errno != EPIPE)
 	   log_unix_error("Rio_readn error");
 	else {
@@ -664,11 +664,11 @@ ssize_t Rio_readn(int fd, void *ptr, size_t nbytes)
     return n;
 }
 
-size_t Rio_writen(int fd, void *usrbuf, size_t n) 
+size_t RIO::writen(int fd, void *usrbuf, size_t n)
 {
     size_t rc;
 
-    if ((rc = rio_writen(fd, usrbuf, n)) != n) {
+    if ((rc = RIOHelper::rio_writen(fd, usrbuf, n)) != n) {
         if (errno != EPIPE)
 	   log_unix_error("Rio_writen error");
 	else {
@@ -679,25 +679,25 @@ size_t Rio_writen(int fd, void *usrbuf, size_t n)
     return rc;
 }
 
-void Rio_readinitb(rio_t *rp, int fd)
+void RIO::readinitb(rio_t *rp, int fd)
 {
-    rio_readinitb(rp, fd);
+	RIOHelper::rio_readinitb(rp, fd);
 } 
 
-ssize_t Rio_readnb(rio_t *rp, void *usrbuf, size_t n) 
+ssize_t RIO::readnb(rio_t *rp, void *usrbuf, size_t n)
 {
     ssize_t rc;
 
-    if ((rc = rio_readnb(rp, usrbuf, n)) < 0)
+    if ((rc = RIOHelper::rio_readnb(rp, usrbuf, n)) < 0)
 	log_unix_error("Rio_readnb error");
     return rc;
 }
 
-ssize_t Rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen) 
+ssize_t RIO::readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
 {
     ssize_t rc;
 
-    if ((rc = rio_readlineb(rp, usrbuf, maxlen)) < 0)
+    if ((rc = RIOHelper::rio_readlineb(rp, usrbuf, maxlen)) < 0)
 	log_unix_error("Rio_readlineb error");
     return rc;
 } 
