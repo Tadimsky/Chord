@@ -28,7 +28,7 @@ public:
 	/**
 	 * Create new Node with an established connection file descriptor.
 	 */
-	Node(int file_descriptor);
+	Node(int file_descriptor, std::string ip_addr, int port);
 	virtual ~Node();
 
 	bool Connect();

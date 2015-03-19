@@ -16,21 +16,18 @@
 
 using namespace std;
 
-Node::Node(std::string ip_addr, int port) {
-	myFD = 0;
-	myIPAddress = ip_addr;
-	myPort = port;
-	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myPort));
+//struct sockaddr_in address;
+//	socklen_t length;
+//
+//	getpeername(file_descriptor, (sockaddr*)&address, &length);
+
+Node::Node(std::string ip_addr, int port) : Node(0, ip_addr, port) {
 }
 
-Node::Node(int file_descriptor) {
+Node::Node(int file_descriptor, std::string ip_addr, int port) {
 	myFD = file_descriptor;
-	struct sockaddr_in address;
-	socklen_t length;
-
-	getpeername(file_descriptor, (sockaddr*)&address, &length);
-	myIPAddress = string(inet_ntoa(address.sin_addr));
-	myPort = ntohs(address.sin_port);
+	myIPAddress = ip_addr;
+	myPort = port;
 	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myPort));
 }
 
