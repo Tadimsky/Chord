@@ -8,10 +8,32 @@
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
 
+#include <string>
+
 class Node {
+private:
+	std::string myIPAddress;
+	int myPort;
+
+	int myFD;
+
+	unsigned int myKey;
+
 public:
-	Node();
+	/**
+	 * Create new Node with a given ip address and port.
+	 */
+	Node(std::string ip_addr, int port);
+
+	/**
+	 * Create new Node with an established connection file descriptor.
+	 */
+	Node(int file_descriptor);
 	virtual ~Node();
+
+	bool Connect();
+
+	unsigned int getKey();
 };
 
 #endif /* SRC_NODE_H_ */
