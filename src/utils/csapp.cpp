@@ -1,6 +1,5 @@
 /* $begin csapp.c */
 #include "csapp.h"
-
 /************************** 
  * Error-handling functions
  **************************/
@@ -800,6 +799,10 @@ int Open_listenfd(int port)
 void ignore() {
 	// do nothing
 	;
+}
+
+size_t RIO::writeString(int fd, const std::string* message) {
+	return RIO::writep(fd, (void*) message->c_str(), message->length());
 }
 /* $end csapp.c */
 

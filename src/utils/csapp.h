@@ -24,6 +24,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <string>
+
 
 /* Default file permissions are DEF_MODE & ~DEF_UMASK */
 /* $begin createmasks */
@@ -146,6 +148,7 @@ public:
 	/* Wrappers for Rio package */
 	static ssize_t readp(int fd, void *ptr, size_t nbytes);
 	static size_t writep(int fd, void *usrbuf, size_t n);
+	static size_t writeString(int fd, const std::string* message);
 	static ssize_t readn(int fd, void *usrbuf, size_t n);
 	static size_t writen(int fd, void *usrbuf, size_t n);
 	static void readinitb(rio_t *rp, int fd);
