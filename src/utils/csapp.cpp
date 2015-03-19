@@ -712,7 +712,7 @@ ssize_t RIO::readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
  *   Returns -2 and sets h_errno on DNS (gethostbyname) error.
  */
 /* $begin open_clientfd */
-int open_clientfd(char *hostname, int port) 
+int open_clientfd(const char *hostname, int port)
 {
     int clientfd;
     struct hostent *hp;
@@ -775,7 +775,7 @@ int open_listenfd(int port)
 /******************************************
  * Wrappers for the client/server helper routines 
  ******************************************/
-int Open_clientfd(char *hostname, int port) 
+int Open_clientfd(const char *hostname, int port)
 {
     int rc;
 

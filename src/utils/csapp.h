@@ -160,7 +160,7 @@ int open_clientfd(char *hostname, int portno);
 int open_listenfd(int portno);
 
 /* Wrappers for client/server helper functions */
-int Open_clientfd(char *hostname, int port);
+int Open_clientfd(const char *hostname, int port);
 int Open_listenfd(int port); 
 
 void ignore();
