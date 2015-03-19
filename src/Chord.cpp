@@ -82,6 +82,8 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	char read_msg[RIO_BUFSIZE];
 	RIO::readlineb(&connection, (void*) read_msg, RIO_BUFSIZE);
 
+	Node n(socket_fd);
+
 	cout << read_msg << endl;
 
 }
