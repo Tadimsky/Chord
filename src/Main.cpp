@@ -29,7 +29,7 @@ int main(int argc, const char* argv[]) {
 	string port;
 	string entry_ip, entry_port;
 
-	unique_ptr<Chord> chord;
+	shared_ptr<Chord> chord;
 
 	int listen_port;
 
@@ -56,7 +56,10 @@ int main(int argc, const char* argv[]) {
 
 	listen_port = atoi(port.c_str());
 
-	chord = unique_ptr<Chord>(new Chord(listen_port));
+	chord = Chord::getInstance();
+	if (chord != nullptr) {
+		chord->init(listen_port);
+	}
 
 	if (entry_ip.empty()) {
 
