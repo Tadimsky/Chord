@@ -7,6 +7,7 @@
 
 #include "Node.h"
 #include "Chord.h"
+#include <iomanip>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -47,4 +48,14 @@ bool Node::Connect() {
 
 unsigned int Node::getKey() {
 	return myKey;
+}
+
+void Node::processCommunication() {
+	stringstream stream;
+	stream << "Hello " << std::hex << myKey << "\n";
+	string message(stream.str());
+	RIO::writep(myFD, (void*)message.c_str(), message.length());
+	while (true) {
+
+	}
 }

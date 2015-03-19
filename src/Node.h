@@ -34,6 +34,8 @@ public:
 	bool Connect();
 
 	unsigned int getKey();
+
+	void processCommunication();
 };
 
 #endif /* SRC_NODE_H_ */
