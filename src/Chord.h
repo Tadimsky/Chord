@@ -23,10 +23,13 @@ class Chord {
 private:
 	const int NUM_PREDECESSORS = 2;
 	const int NUM_SUCCESSORS = 2;
-	const std::string WELCOME_MESSAGE = "Welcome! Go Ahead.\n";
+	const std::string WELCOME_MESSAGE = "Welcome!\n";
 
 	int myListenFD;
 	int myListenPort;
+	std::string myIPAddress;
+
+	chord_key myKey;
 
 	std::vector<Node> myPredecessors;
 	std::vector<Node> mySuccessors;
@@ -43,6 +46,8 @@ public:
 	void JoinRing(std::string entry_ip, int entry_port);
 
 	static chord_key hashKey(std::string value);
+
+	static std::string getLocalIPAddress();
 };
 
 #endif /* CHORD_H_ */
