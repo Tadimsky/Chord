@@ -13,6 +13,7 @@
 #include "Chord.h"
 #include "Node.h"
 #include "utils/csapp.h"
+#include <sstream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -86,16 +87,38 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	char read_msg[RIO_BUFSIZE];
 	RIO::readlineb(&connection, (void*) read_msg, RIO_BUFSIZE);
 	string message(read_msg);
+	stringstream parse(message);
 
-	if (message.find("Node") == 0) {
-		Node n(socket_fd);
-		n.processCommunication();
+	string command;
+	parse >> command;
+
+	if (command.compare("Node") == 0) {
+		// Node identification message: Node Key IP:Port
+
+		chord_key key;
+		string ip;
+		int port;
+		parse >> hex >> key >> ip;
+
+		// TODO: remove && false
+		if (key != Chord::hashKey(ip) && false) {
+			// invalid key
+			string msg("You are using an invalid key.\n");
+			RIO::writeString(socket_fd, &msg);
+		}
+		else {
+			port = std::stoi(ip.substr(ip.find(":") + 1));
+			ip = ip.substr(0, ip.find(":"));
+
+			Node n(socket_fd, ip, port);
+			n.processCommunication();
+		}
 	}
-	else if (message.find("Query") == 0) {
-		Node n(socket_fd);
+	else if (command.find("Query") == 0) {
+		//Node n(socket_fd, "", "");
 	}
 	else {
-		RIO::writep(socket_fd, (void*)  Chord::ERROR_GOODBYE_MESSAGE.c_str(), Chord::ERROR_GOODBYE_MESSAGE.length());
+		RIO::writeString(socket_fd, &(Chord::ERROR_GOODBYE_MESSAGE));
 		cout << "Unknown client connected." << endl;
 	}
 
