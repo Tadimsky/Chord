@@ -96,6 +96,7 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	}
 	else {
 		RIO::writep(socket_fd, (void*)  Chord::ERROR_GOODBYE_MESSAGE.c_str(), Chord::ERROR_GOODBYE_MESSAGE.length());
+		cout << "Unknown client connected." << endl;
 	}
 
 	shutdown(socket_fd, 0);
