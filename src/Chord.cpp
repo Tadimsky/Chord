@@ -24,7 +24,11 @@
 
 using namespace std;
 
+shared_ptr<Chord> Chord::myInstance = nullptr;
+
 void Chord::Listen() {
+	assert(myKey != 0);
+
 	myListenFD = Open_listenfd(myListenPort);
 	if (myListenFD < 0) {
 		exit(-1);
@@ -40,7 +44,7 @@ void Chord::Listen() {
 
 	int newConnection;
 
-	thread clientThread;
+	vector<thread> threads;
 
 	while (true) {
 		client_len = sizeof(client_addr);
@@ -48,17 +52,17 @@ void Chord::Listen() {
 
 		cout << "New Connection! " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << endl;
 
-		clientThread = thread(&Chord::handleRequest, this, newConnection, client_addr);
+		threads.push_back(
+				thread(&Chord::handleRequest, this, newConnection, client_addr)
+				);
 	}
 
 }
 
-Chord::Chord(int port) {
-	myListenPort = port;
+Chord::Chord() {
+	myListenPort = 0;
 	myListenFD = 0;
 	myIPAddress = Chord::getLocalIPAddress();
-
-	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myListenPort));
 }
 
 Chord::~Chord() {
@@ -81,11 +85,23 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 
 	char read_msg[RIO_BUFSIZE];
 	RIO::readlineb(&connection, (void*) read_msg, RIO_BUFSIZE);
+	string message(read_msg);
 
-	Node n(socket_fd);
+	if (message.find("Node") == 0) {
+		Node n(socket_fd);
+		n.processCommunication();
+	}
+	else if (message.find("Query") == 0) {
+		Node n(socket_fd);
+	}
+	else {
+		RIO::writep(socket_fd, (void*)  Chord::ERROR_GOODBYE_MESSAGE.c_str(), Chord::ERROR_GOODBYE_MESSAGE.length());
+	}
+
+	shutdown(socket_fd, 0);
+	Close(socket_fd);
 
 	cout << read_msg << endl;
-
 }
 
 chord_key Chord::hashKey(std::string value) {
@@ -102,6 +118,20 @@ chord_key Chord::hashKey(std::string value) {
 	}
 
 	return resultKey;
+}
+
+
+
+std::shared_ptr<Chord> Chord::getInstance() {
+	if (myInstance == nullptr) {
+		myInstance = shared_ptr<Chord>(new Chord());
+	}
+	return myInstance;
+}
+
+void Chord::init(int port) {
+	myListenPort = port;
+	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myListenPort));
 }
 
 std::string Chord::getLocalIPAddress() {

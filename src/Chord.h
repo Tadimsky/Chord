@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <vector>
+#include <memory>
 #include "Node.h"
 
 
@@ -22,9 +23,12 @@ void showUsageMessage(std::string procname);
 
 class Chord {
 private:
+	static std::shared_ptr<Chord> myInstance;
+
 	const int NUM_PREDECESSORS = 2;
 	const int NUM_SUCCESSORS = 2;
-	const std::string WELCOME_MESSAGE = "Welcome!\n";
+	const std::string WELCOME_MESSAGE = "Welcome! Who are you?\n";
+	const std::string ERROR_GOODBYE_MESSAGE = "I don't know who you are. Please leave.\n";
 
 	int myListenFD;
 	int myListenPort;
@@ -37,8 +41,12 @@ private:
 
 	void handleRequest(int socket_fd, sockaddr_in sockaddr);
 
+	Chord();
+
 public:
-	Chord(int port);
+	static std::shared_ptr<Chord> getInstance();
+
+	void init(int port);
 
 	virtual ~Chord();
 
