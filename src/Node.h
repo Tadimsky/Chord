@@ -52,6 +52,8 @@ public:
 	std::string toString();
 
 	bool isConnected();
+
+	static std::shared_ptr<Node> createFromInfo(std::string info);
 };
 
 #endif /* SRC_NODE_H_ */

@@ -15,6 +15,7 @@
 #include "utils/csapp.h"
 #include <iostream>
 #include <sstream>
+#include <assert.h>
 
 using namespace std;
 
@@ -65,11 +66,13 @@ std::string Node::readLine() {
 }
 
 size_t Node::send(const std::string* message) {
+	assert(myFD > 0);
 	return RIO::writeString(myFD, message);
 }
 
 void Node::processCommunication(RIOBuffered* rio) {
 	myRIOBuffer = std::shared_ptr<RIOBuffered>(rio);
+	myFD = myRIOBuffer->getFD();
 
 	stringstream stream;
 	stream << "Hello " << std::hex << myKey << "\n";
@@ -156,6 +159,11 @@ std::shared_ptr<Node> Node::getSuccessor(int index) {
 	if (!this->isConnected()) {
 		this->Connect();
 	}
+	stringstream s;
+	s << "GET SUCCESSOR " << index;
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+	msg = myRIOBuffer->readLine();
 }
 
 std::shared_ptr<Node> Node::getPredecessor(int index) {
@@ -165,4 +173,26 @@ bool Node::isConnected() {
 	if (myFD == 0) {
 		return false;
 	}
+}
+
+std::shared_ptr<Node> Node::createFromInfo(std::string info) {
+	// this is in the same format as toString
+	unsigned int key;
+	std::string ip;
+	int port;
+
+	stringstream result(info);
+	result >> hex >> key >> ip;
+
+	// validate key and ip:port
+	// TODO: remove && false
+	if (key != Chord::hashKey(ip) && false) {
+		// invalid key
+		cout << "Node " << hex << key << " had an invalid key." << endl;
+		return nullptr;
+	}
+
+	Chord::parseIPPort(ip, &ip, &port);
+
+	return shared_ptr<Node>(new Node(ip, port));
 }
