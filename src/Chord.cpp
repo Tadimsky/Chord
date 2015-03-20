@@ -76,17 +76,16 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 
 void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	cout << "Processing connection." << endl;
-	rio_t connection;
 
-	RIO::readinitb(&connection, socket_fd);
+	RIOBuffered connection(socket_fd);
+
 	char msg[256];
 	sprintf(msg, "My ID is %x\n", myKey);
-	RIO::writep(socket_fd, (void*) Chord::WELCOME_MESSAGE.c_str(), Chord::WELCOME_MESSAGE.length());
+	connection.writeLine(&(Chord::WELCOME_MESSAGE));
+
 	RIO::writep(socket_fd, (void*) msg, strlen(msg));
 
-	char read_msg[RIO_BUFSIZE];
-	RIO::readlineb(&connection, (void*) read_msg, RIO_BUFSIZE);
-	string message(read_msg);
+	string message = connection.readLine();
 	stringstream parse(message);
 
 	string command;
@@ -111,7 +110,7 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 			ip = ip.substr(0, ip.find(":"));
 
 			Node n(socket_fd, ip, port);
-			n.processCommunication();
+			n.processCommunication(&connection);
 		}
 	}
 	else if (command.find("Query") == 0) {
@@ -124,8 +123,6 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 
 	shutdown(socket_fd, 0);
 	Close(socket_fd);
-
-	cout << read_msg << endl;
 }
 
 chord_key Chord::hashKey(std::string value) {
@@ -156,6 +153,7 @@ std::shared_ptr<Chord> Chord::getInstance() {
 void Chord::init(int port) {
 	myListenPort = port;
 	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myListenPort));
+	myNodeInfo = shared_ptr<Node>(new Node(myIPAddress, myListenPort));
 }
 
 std::string Chord::getLocalIPAddress() {
@@ -190,4 +188,35 @@ std::string Chord::getLocalIPAddress() {
 	}
 	freeifaddrs(ifaddr);
 	return string(host);
+}
+
+std::string Chord::toString() {
+	stringstream result;
+	result << hex << myKey << " " << myIPAddress << ":" << dec << myListenPort << endl;
+	return result.str();
+}
+
+std::shared_ptr<Node> Chord::findSuccessor(chord_key key) {
+	if (mySuccessors.size() == 0) {
+		// we have no successors - first node in circle?
+		return myNodeInfo;
+	}
+	else {
+		shared_ptr<Node> n;
+		n = findPredecessor(key);
+		//return n.get
+	}
+
+}
+
+std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
+	shared_ptr<Node> n = myNodeInfo;
+	// TODO: iterate over the finger table instead of the successor
+	for (int i = mySuccessors.size() - 1; i >= 0; --i) {
+		if (myKey < key && key <= mySuccessors[i].getKey()) {
+			n = shared_ptr<Node>(&(mySuccessors[i]));
+			return n;
+		}
+	}
+	return n;
 }

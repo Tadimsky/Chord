@@ -25,6 +25,8 @@ class Chord {
 private:
 	static std::shared_ptr<Chord> myInstance;
 
+	std::shared_ptr<Node> myNodeInfo;
+
 	const int NUM_PREDECESSORS = 2;
 	const int NUM_SUCCESSORS = 2;
 	const std::string WELCOME_MESSAGE = "Welcome! Who are you?\n";
@@ -36,14 +38,16 @@ private:
 
 	chord_key myKey;
 
-	std::vector<Node> myPredecessors;
-	std::vector<Node> mySuccessors;
+
 
 	void handleRequest(int socket_fd, sockaddr_in sockaddr);
 
 	Chord();
 
 public:
+	std::vector<Node> myPredecessors;
+	std::vector<Node> mySuccessors;
+
 	static std::shared_ptr<Chord> getInstance();
 
 	void init(int port);
@@ -57,6 +61,12 @@ public:
 	static chord_key hashKey(std::string value);
 
 	static std::string getLocalIPAddress();
+
+	std::string toString();
+
+	std::shared_ptr<Node> findSuccessor(chord_key key);
+	std::shared_ptr<Node> findPredecessor(chord_key key);
+
 };
 
 #endif /* CHORD_H_ */
