@@ -59,6 +59,7 @@ public:
 	void JoinRing(std::string entry_ip, int entry_port);
 
 	static chord_key hashKey(std::string value);
+	static void parseIPPort(std::string message, std::string* ip, int* port);
 
 	static std::string getLocalIPAddress();
 

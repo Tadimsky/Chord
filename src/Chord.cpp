@@ -93,24 +93,16 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 
 	if (command.compare("Node") == 0) {
 		// Node identification message: Node Key IP:Port
+		string message;
+		getline(parse, message);
 
-		chord_key key;
-		string ip;
-		int port;
-		parse >> hex >> key >> ip;
-
-		// TODO: remove && false
-		if (key != Chord::hashKey(ip) && false) {
-			// invalid key
+		shared_ptr<Node> node = Node::createFromInfo(message);
+		if (node == nullptr) {
 			string msg("You are using an invalid key.\n");
 			RIO::writeString(socket_fd, &msg);
 		}
 		else {
-			port = std::stoi(ip.substr(ip.find(":") + 1));
-			ip = ip.substr(0, ip.find(":"));
-
-			Node n(socket_fd, ip, port);
-			n.processCommunication(&connection);
+			node->processCommunication(&connection);
 		}
 	}
 	else if (command.find("Query") == 0) {
@@ -219,4 +211,9 @@ std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
 		}
 	}
 	return n;
+}
+
+void Chord::parseIPPort(std::string message, std::string* ip, int* port) {
+	*port = std::stoi(message.substr(message.find(":") + 1));
+	*ip = message.substr(0, message.find(":"));
 }
