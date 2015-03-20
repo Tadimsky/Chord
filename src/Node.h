@@ -9,15 +9,24 @@
 #define SRC_NODE_H_
 
 #include <string>
+#include <memory>
+#include "utils/csapp.h"
 
 class Node {
 private:
+	const std::string NOT_FOUND = "Item Not Found\n";
 	std::string myIPAddress;
 	int myPort;
 
 	int myFD;
 
+	std::shared_ptr<RIOBuffered> myRIOBuffer;
+
 	unsigned int myKey;
+
+	char buffer[RIO_BUFSIZE];
+	std::string readLine();
+	size_t send(const std::string* message);
 
 public:
 	/**
@@ -35,7 +44,14 @@ public:
 
 	unsigned int getKey();
 
-	void processCommunication();
+	void processCommunication(RIOBuffered* rio);
+
+	std::shared_ptr<Node> getSuccessor(int index = 1);
+	std::shared_ptr<Node> getPredecessor(int index = 1);
+
+	std::string toString();
+
+	bool isConnected();
 };
 
 #endif /* SRC_NODE_H_ */
