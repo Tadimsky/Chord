@@ -47,8 +47,8 @@ private:
 
 public:
 	std::shared_ptr<Node> NodeInfo;
-	std::vector<Node> Predecessors;
-	std::vector<Node> Successors;
+	std::vector<std::shared_ptr<Node>> Predecessors;
+	std::vector<std::shared_ptr<Node>> Successors;
 
 	static std::shared_ptr<Chord> getInstance();
 

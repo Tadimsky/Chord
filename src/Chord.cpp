@@ -206,8 +206,8 @@ std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
 	// TODO: iterate over the finger table instead of the successor
 	for (int i = Successors.size() - 1; i >= 0; --i) {
 		// key in (current, mySuccessors[i])
-		if (myKey < key && key <= Successors[i].getKey()) {
-			n = shared_ptr<Node>(&(Successors[i]));
+		if (myKey < key && key <= Successors[i]->getKey()) {
+			n = Successors[i];
 			return n;
 		}
 	}
@@ -222,7 +222,7 @@ void Chord::parseIPPort(std::string message, std::string* ip, int* port) {
 std::tuple<int, int> Chord::getRange() {
 	int lowerKey = myKey;
 	if (Predecessors.size() > 0) {
-		lowerKey = Predecessors[0].getKey();
+		lowerKey = Predecessors[0]->getKey();
 	}
 	return tuple<int, int>(lowerKey, myKey);
 }

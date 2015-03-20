@@ -98,7 +98,7 @@ void Node::processCommunication(RIOBuffered* rio) {
 				string response;
 
 				if (Chord::getInstance()->Successors.size() > index - 1) {
-					response = Chord::getInstance()->Successors[index - 1].toString();
+					response = Chord::getInstance()->Successors[index - 1]->toString();
 				}
 				else {
 					if (index == 1) {
@@ -114,6 +114,21 @@ void Node::processCommunication(RIOBuffered* rio) {
 			else if (command.compare("PREDECESSOR") == 0) {
 					int index;
 					str >> index;
+					string response;
+
+					if (Chord::getInstance()->Predecessors.size() > index - 1) {
+						response = Chord::getInstance()->Predecessors[index - 1]->toString();
+					}
+					else {
+						if (index == 1) {
+							// this happens when there are no successors because it's the only one.
+							response = Chord::getInstance()->NodeInfo->toString();
+						}
+						else {
+							response = Node::NOT_FOUND;
+						}
+					}
+					this->send(&response);
 			}
 			else if (command.compare("INFO") == 0) {
 				string s = Chord::getInstance()->toString();
@@ -130,6 +145,26 @@ void Node::processCommunication(RIOBuffered* rio) {
 		}
 		// Get Queries - all specific to the instance of Chord
 		else if (command.compare("SET") == 0) {
+			str >> command;
+
+			if (command.compare("SUCCESSOR") == 0) {
+				int index;
+				str >> index;
+
+				string info;
+				// get the Node info
+				getline(str, info);
+				auto node = Node::createFromInfo(info);
+				if (node->getKey() == myKey) {
+					// it is this node trying to make us point to it
+					node = shared_ptr<Node>(this);
+				}
+
+				Chord::getInstance()->Successors.insert(Chord::getInstance()->Successors.begin() + index - 1, node);
+			}
+			else if (command.compare("PREDECESSOR") == 0) {
+
+			}
 
 		}
 		// Find queries
