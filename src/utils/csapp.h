@@ -167,6 +167,7 @@ public:
 	std::string readLine();
 	std::string readBytes(size_t amount);
 	size_t writeLine(const std::string* msg);
+	int getFD();
 };
 
 

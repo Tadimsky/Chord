@@ -833,5 +833,9 @@ std::string RIOBuffered::readBytes(size_t amount) {
 size_t RIOBuffered::writeLine(const std::string* msg) {
 	return RIO::writeString(myRioData.rio_fd, msg);
 }
+
+int RIOBuffered::getFD() {
+	return myRioData.rio_fd;
+}
 /* $end csapp.c */
 
