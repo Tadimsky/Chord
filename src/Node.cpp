@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
+#include <tuple>
 
 using namespace std;
 
@@ -94,13 +95,21 @@ void Node::processCommunication(RIOBuffered* rio) {
 			if (command.compare("SUCCESSOR") == 0) {
 				int index;
 				str >> index;
-				if (Chord::getInstance()->mySuccessors.size() > index - 1) {
-					string response = Chord::getInstance()->mySuccessors[index - 1].toString();
-					this->send(&response);
+				string response;
+
+				if (Chord::getInstance()->Successors.size() > index - 1) {
+					response = Chord::getInstance()->Successors[index - 1].toString();
 				}
 				else {
-					this->send(&(Node::NOT_FOUND));
+					if (index == 1) {
+						// this happens when there are no successors because it's the only one.
+						response = Chord::getInstance()->NodeInfo->toString();
+					}
+					else {
+						response = Node::NOT_FOUND;
+					}
 				}
+				this->send(&response);
 			}
 			else if (command.compare("PREDECESSOR") == 0) {
 					int index;
@@ -110,7 +119,13 @@ void Node::processCommunication(RIOBuffered* rio) {
 				string s = Chord::getInstance()->toString();
 				this->send(&s);
 			}
-
+			else if (command.compare("RANGE") == 0) {
+				auto range = Chord::getInstance()->getRange();
+				stringstream msg_s;
+				msg_s << hex << get<0>(range) << " " << hex << get<1>(range) << endl;
+				string msg(msg_s.str());
+				this->send(&msg);
+			}
 
 		}
 		// Get Queries - all specific to the instance of Chord
@@ -121,18 +136,36 @@ void Node::processCommunication(RIOBuffered* rio) {
 		else if (command.compare("FIND") == 0) {
 			str >> command;
 			if (command.compare("SUCCESSOR") == 0) {
-				string key;
-				str >> key;
+				unsigned int key;
+				str >> hex >> key;
 				// find the closest predecessor
 				// return successor of that
+				auto node = Chord::getInstance()->findSuccessor(key);
+				string msg = node->toString();
+				myRIOBuffer->writeLine(&msg);
 			}
 		}
 		// Find queries
 		else if (command.compare("SEARCH") == 0) {
 			str >> command;
 			if (command.compare("SUCCESSOR") == 0) {
-				string key;
-				str >> key;
+				int  key;
+				str >> hex >> key;
+				// get best option we know of
+				auto node = Chord::getInstance()->findSuccessor(key);
+				if (node == Chord::getInstance()->NodeInfo) {
+					// we just return ourselves
+					string msg = node->toString();
+					myRIOBuffer->writeLine(&msg);
+				}
+				else {
+					// check this entry for validity
+					// pred is less than key
+
+				}
+
+				string msg = node->toString();
+				myRIOBuffer->writeLine(&msg);
 				// perform iterative lookup of successor for a key
 				// use FIND SUCCESSOR on nodes to get the actual value
 				// find predecessor to the id
