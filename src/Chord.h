@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include <vector>
 #include <memory>
+#include <tuple>
 #include "Node.h"
 
 
@@ -25,7 +26,7 @@ class Chord {
 private:
 	static std::shared_ptr<Chord> myInstance;
 
-	std::shared_ptr<Node> myNodeInfo;
+
 
 	const int NUM_PREDECESSORS = 2;
 	const int NUM_SUCCESSORS = 2;
@@ -45,8 +46,9 @@ private:
 	Chord();
 
 public:
-	std::vector<Node> myPredecessors;
-	std::vector<Node> mySuccessors;
+	std::shared_ptr<Node> NodeInfo;
+	std::vector<Node> Predecessors;
+	std::vector<Node> Successors;
 
 	static std::shared_ptr<Chord> getInstance();
 
@@ -67,6 +69,8 @@ public:
 
 	std::shared_ptr<Node> findSuccessor(chord_key key);
 	std::shared_ptr<Node> findPredecessor(chord_key key);
+
+	std::tuple<int, int> getRange();
 
 };
 

@@ -145,7 +145,7 @@ std::shared_ptr<Chord> Chord::getInstance() {
 void Chord::init(int port) {
 	myListenPort = port;
 	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myListenPort));
-	myNodeInfo = shared_ptr<Node>(new Node(myIPAddress, myListenPort));
+	NodeInfo = shared_ptr<Node>(new Node(myIPAddress, myListenPort));
 }
 
 std::string Chord::getLocalIPAddress() {
@@ -189,24 +189,25 @@ std::string Chord::toString() {
 }
 
 std::shared_ptr<Node> Chord::findSuccessor(chord_key key) {
-	if (mySuccessors.size() == 0) {
+	if (Successors.size() == 0) {
 		// we have no successors - first node in circle?
-		return myNodeInfo;
+		return NodeInfo;
 	}
 	else {
 		shared_ptr<Node> n;
 		n = findPredecessor(key);
-		//return n.get
+		return n->getSuccessor();
 	}
 
 }
 
 std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
-	shared_ptr<Node> n = myNodeInfo;
+	shared_ptr<Node> n = NodeInfo;
 	// TODO: iterate over the finger table instead of the successor
-	for (int i = mySuccessors.size() - 1; i >= 0; --i) {
-		if (myKey < key && key <= mySuccessors[i].getKey()) {
-			n = shared_ptr<Node>(&(mySuccessors[i]));
+	for (int i = Successors.size() - 1; i >= 0; --i) {
+		// key in (current, mySuccessors[i])
+		if (myKey < key && key <= Successors[i].getKey()) {
+			n = shared_ptr<Node>(&(Successors[i]));
 			return n;
 		}
 	}
@@ -216,4 +217,12 @@ std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
 void Chord::parseIPPort(std::string message, std::string* ip, int* port) {
 	*port = std::stoi(message.substr(message.find(":") + 1));
 	*ip = message.substr(0, message.find(":"));
+}
+
+std::tuple<int, int> Chord::getRange() {
+	int lowerKey = myKey;
+	if (Predecessors.size() > 0) {
+		lowerKey = Predecessors[0].getKey();
+	}
+	return tuple<int, int>(lowerKey, myKey);
 }
