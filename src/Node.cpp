@@ -164,6 +164,7 @@ std::shared_ptr<Node> Node::getSuccessor(int index) {
 	string msg = s.str();
 	myRIOBuffer->writeLine(&msg);
 	msg = myRIOBuffer->readLine();
+	return Node::createFromInfo(msg);
 }
 
 std::shared_ptr<Node> Node::getPredecessor(int index) {
