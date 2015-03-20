@@ -154,6 +154,19 @@ public:
 	static void readinitb(rio_t *rp, int fd);
 	static ssize_t readnb(rio_t *rp, void *usrbuf, size_t n);
 	static ssize_t readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
+	static ssize_t skiplineb(rio_t *rp);
+};
+
+class RIOBuffered {
+private:
+	rio_t myRioData;
+public:
+	RIOBuffered(int fd);
+	~RIOBuffered();
+
+	std::string readLine();
+	std::string readBytes(size_t amount);
+	size_t writeLine(const std::string* msg);
 };
 
 

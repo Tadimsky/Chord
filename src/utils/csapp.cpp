@@ -804,5 +804,34 @@ void ignore() {
 size_t RIO::writeString(int fd, const std::string* message) {
 	return RIO::writep(fd, (void*) message->c_str(), message->length());
 }
+
+ssize_t RIO::skiplineb(rio_t* rp) {
+	char buf[RIO_BUFSIZE];
+	RIO::readlineb(rp, buf, RIO_BUFSIZE);
+}
+
+RIOBuffered::RIOBuffered(int fd) {
+	RIO::readinitb(&myRioData, fd);
+}
+
+RIOBuffered::~RIOBuffered() {
+	// anything?
+}
+
+std::string RIOBuffered::readLine() {
+	char buf[RIO_BUFSIZE];
+	RIO::readlineb(&myRioData, (void*)buf, RIO_BUFSIZE);
+	return std::string(buf);
+}
+
+std::string RIOBuffered::readBytes(size_t amount) {
+	char buf[amount];
+	RIO::readnb(&myRioData, (void*)buf, amount);
+	return std::string(buf);
+}
+
+size_t RIOBuffered::writeLine(const std::string* msg) {
+	return RIO::writeString(myRioData.rio_fd, msg);
+}
 /* $end csapp.c */
 
