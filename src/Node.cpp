@@ -39,6 +39,12 @@ Node::Node(int file_descriptor, std::string ip_addr, int port) {
 }
 
 Node::~Node() {
+	if (myFD > 0) {
+		// let them know we are done.
+		// myRIOBuffer->writeLine(&(Node::EXIT_MSG));
+		shutdown(myFD, 0);
+		Close(myFD);
+	}
 }
 
 bool Node::Connect() {
@@ -53,7 +59,9 @@ bool Node::Connect() {
 
 		message = "Node " + this->toString();
 		this->send(&message);
-		return true;
+		message = myRIOBuffer->readLine();
+
+		return message.find("Hello") == 0;
 	}
 	return false;
 }
@@ -71,8 +79,8 @@ size_t Node::send(const std::string* message) {
 	return RIO::writeString(myFD, message);
 }
 
-void Node::processCommunication(RIOBuffered* rio) {
-	myRIOBuffer = std::shared_ptr<RIOBuffered>(rio);
+void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
+	myRIOBuffer = rio;
 	myFD = myRIOBuffer->getFD();
 
 	stringstream stream;
@@ -83,6 +91,10 @@ void Node::processCommunication(RIOBuffered* rio) {
 	while (true) {
 		// block until it reads a line.
 		message = this->readLine();
+		if (message.length() == 0) {
+			// we have been shutdown by the other side. Bye!
+			return;
+		}
 		stringstream str(message);
 		string command;
 		str >> command;
@@ -93,7 +105,7 @@ void Node::processCommunication(RIOBuffered* rio) {
 			str >> command;
 
 			if (command.compare("SUCCESSOR") == 0) {
-				int index;
+				int index = -1;
 				str >> index;
 				string response;
 
@@ -147,7 +159,7 @@ void Node::processCommunication(RIOBuffered* rio) {
 		else if (command.compare("SET") == 0) {
 			str >> command;
 
-			if (command.compare("SUCCESSOR") == 0) {
+			if (command.compare("SUCCESSOR") == 0 || command.compare("PREDECESSOR") == 0) {
 				int index;
 				str >> index;
 
@@ -159,13 +171,13 @@ void Node::processCommunication(RIOBuffered* rio) {
 					// it is this node trying to make us point to it
 					node = shared_ptr<Node>(this);
 				}
-
-				Chord::getInstance()->Successors.insert(Chord::getInstance()->Successors.begin() + index - 1, node);
+				if (command.compare("SUCCESSOR") == 0) {
+					Chord::getInstance()->Successors.insert(Chord::getInstance()->Successors.begin() + index - 1, node);
+				}
+				else {
+					Chord::getInstance()->Predecessors.insert(Chord::getInstance()->Predecessors.begin() + index - 1, node);
+				}
 			}
-			else if (command.compare("PREDECESSOR") == 0) {
-
-			}
-
 		}
 		// Find queries
 		else if (command.compare("FIND") == 0) {
@@ -184,23 +196,39 @@ void Node::processCommunication(RIOBuffered* rio) {
 		else if (command.compare("SEARCH") == 0) {
 			str >> command;
 			if (command.compare("SUCCESSOR") == 0) {
-				int  key;
+				unsigned int key;
 				str >> hex >> key;
 				// get best option we know of
 				auto node = Chord::getInstance()->findSuccessor(key);
-				if (node == Chord::getInstance()->NodeInfo) {
-					// we just return ourselves
-					string msg = node->toString();
-					myRIOBuffer->writeLine(&msg);
-				}
-				else {
+
+				while (true) {
 					// check this entry for validity
 					// pred is less than key
+					auto pred = node->getPredecessor();
+					cout << "Key Range (" << hex << pred->getKey() << ", " << hex << node->getKey() << "]" << endl;
 
+					// check if key between predecessor and provided successor
+					if (Chord::inRange(pred->getKey(), node->getKey(), key)) {
+						// if so, then this is the successor!
+						string msg = node->toString();
+						myRIOBuffer->writeLine(&msg);
+						break;
+					}
+					else {
+						cout << "We have " << hex << node->getKey() << ". We are looking for " << hex << key << endl;
+						// get the next best attempt
+						node = node->FindSuccessor(key);
+					}
 				}
 
-				string msg = node->toString();
-				myRIOBuffer->writeLine(&msg);
+
+
+//				if (node->getKey() == Chord::getInstance()->NodeInfo->getKey()) {
+//					// we just return ourselves
+//					string msg = node->toString();
+//					myRIOBuffer->writeLine(&msg);
+//				}
+
 				// perform iterative lookup of successor for a key
 				// use FIND SUCCESSOR on nodes to get the actual value
 				// find predecessor to the id
@@ -212,6 +240,12 @@ void Node::processCommunication(RIOBuffered* rio) {
 			// Join
 		}
 		else {
+			if (command.compare(Node::EXIT_MSG) == 0) {
+				// quit and close
+				string goodbye = "Goodbye Friend!\n";
+				myRIOBuffer->writeLine(&goodbye);
+				return;
+			}
 			cout << "Unknown Request: " << message;
 		}
 	}
@@ -228,20 +262,102 @@ std::shared_ptr<Node> Node::getSuccessor(int index) {
 		this->Connect();
 	}
 	stringstream s;
-	s << "GET SUCCESSOR " << index;
+	s << "GET SUCCESSOR " << index << endl;
 	string msg = s.str();
 	myRIOBuffer->writeLine(&msg);
 	msg = myRIOBuffer->readLine();
+	if (msg.compare(Node::NOT_FOUND) == 0) {
+		return nullptr;
+	}
 	return Node::createFromInfo(msg);
 }
 
 std::shared_ptr<Node> Node::getPredecessor(int index) {
+	if (!this->isConnected()) {
+		this->Connect();
+	}
+	stringstream s;
+	s << "GET PREDECESSOR " << index << endl;
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+	msg = myRIOBuffer->readLine();
+	if (msg.compare(Node::NOT_FOUND) == 0) {
+		return nullptr;
+	}
+	return Node::createFromInfo(msg);
 }
 
 bool Node::isConnected() {
-	if (myFD == 0) {
-		return false;
+	return (myFD > 0);
+}
+
+std::shared_ptr<Node> Node::SearchSuccessor(unsigned int key) {
+	if (!this->isConnected()) {
+			this->Connect();
 	}
+	stringstream s;
+	s << "SEARCH SUCCESSOR " << hex << key << endl;
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+	msg = myRIOBuffer->readLine();
+	if (msg.compare(Node::NOT_FOUND) == 0) {
+		return nullptr;
+	}
+	return Node::createFromInfo(msg);
+}
+
+std::shared_ptr<Node> Node::FindSuccessor(unsigned int key) {
+	if (!this->isConnected()) {
+			this->Connect();
+	}
+	stringstream s;
+	s << "FIND SUCCESSOR " << hex << key << endl;
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+	msg = myRIOBuffer->readLine();
+	if (msg.compare(Node::NOT_FOUND) == 0) {
+		return nullptr;
+	}
+	return Node::createFromInfo(msg);
+}
+
+void Node::setSuccessor(Node* node, int index) {
+	if (!this->isConnected()) {
+			this->Connect();
+	}
+	stringstream s;
+	s << "SET SUCCESSOR " << index << " " << node->toString();
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+}
+
+void Node::setPredecessor(Node* node, int index) {
+	if (!this->isConnected()) {
+		this->Connect();
+	}
+	stringstream s;
+	s << "SET PREDECESSOR " << index << " " << node->toString();
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+}
+
+std::tuple<unsigned int, unsigned int> Node::getRange() {
+	if (!this->isConnected()) {
+			this->Connect();
+	}
+	stringstream s;
+	s << "GET RANGE" << endl;
+	string msg = s.str();
+	myRIOBuffer->writeLine(&msg);
+	msg = myRIOBuffer->readLine();
+
+	stringstream response(msg);
+
+	unsigned int lower;
+	unsigned int upper;
+
+	response >> lower >> upper;
+	return tuple<int, int>(lower, upper);
 }
 
 std::shared_ptr<Node> Node::createFromInfo(std::string info) {

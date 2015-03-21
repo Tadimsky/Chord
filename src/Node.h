@@ -15,6 +15,7 @@
 class Node {
 private:
 	const std::string NOT_FOUND = "Item Not Found\n";
+	const std::string EXIT_MSG = "EXIT";
 	std::string myIPAddress;
 	int myPort;
 
@@ -44,10 +45,18 @@ public:
 
 	unsigned int getKey();
 
-	void processCommunication(RIOBuffered* rio);
+	void processCommunication(std::shared_ptr<RIOBuffered> rio);
 
 	std::shared_ptr<Node> getSuccessor(int index = 1);
 	std::shared_ptr<Node> getPredecessor(int index = 1);
+
+	void setSuccessor(Node* node, int index = 1);
+	void setPredecessor(Node* node, int index = 1);
+
+	std::shared_ptr<Node> SearchSuccessor(unsigned int key);
+	std::shared_ptr<Node> FindSuccessor(unsigned int key);
+
+	std::tuple<unsigned int, unsigned int> getRange();
 
 	std::string toString();
 
