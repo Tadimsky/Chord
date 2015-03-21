@@ -83,6 +83,8 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 	myRIOBuffer = rio;
 	myFD = myRIOBuffer->getFD();
 
+	auto chord = Chord::getInstance();
+
 	stringstream stream;
 	stream << "Hello " << std::hex << myKey << "\n";
 	string message(stream.str());
@@ -109,13 +111,13 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 				str >> index;
 				string response;
 
-				if (Chord::getInstance()->Successors.size() > index - 1) {
-					response = Chord::getInstance()->Successors[index - 1]->toString();
+				if (chord->Successors.size() > index - 1) {
+					response = chord->Successors[index - 1]->toString();
 				}
 				else {
 					if (index == 1) {
 						// this happens when there are no successors because it's the only one.
-						response = Chord::getInstance()->NodeInfo->toString();
+						response = chord->NodeInfo->toString();
 					}
 					else {
 						response = Node::NOT_FOUND;
@@ -128,13 +130,13 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 					str >> index;
 					string response;
 
-					if (Chord::getInstance()->Predecessors.size() > index - 1) {
-						response = Chord::getInstance()->Predecessors[index - 1]->toString();
+					if (chord->Predecessors.size() > index - 1) {
+						response = chord->Predecessors[index - 1]->toString();
 					}
 					else {
 						if (index == 1) {
 							// this happens when there are no successors because it's the only one.
-							response = Chord::getInstance()->NodeInfo->toString();
+							response = chord->NodeInfo->toString();
 						}
 						else {
 							response = Node::NOT_FOUND;
@@ -143,11 +145,11 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 					this->send(&response);
 			}
 			else if (command.compare("INFO") == 0) {
-				string s = Chord::getInstance()->toString();
+				string s = chord->toString();
 				this->send(&s);
 			}
 			else if (command.compare("RANGE") == 0) {
-				auto range = Chord::getInstance()->getRange();
+				auto range = chord->getRange();
 				stringstream msg_s;
 				msg_s << hex << get<0>(range) << " " << hex << get<1>(range) << endl;
 				string msg(msg_s.str());
@@ -172,10 +174,12 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 					node = shared_ptr<Node>(this);
 				}
 				if (command.compare("SUCCESSOR") == 0) {
-					Chord::getInstance()->Successors.insert(Chord::getInstance()->Successors.begin() + index - 1, node);
+					// we don't want to reset up a link to the node.
+					// they just told us to set it up.
+					chord->setSuccessor(index, node, false);
 				}
 				else {
-					Chord::getInstance()->Predecessors.insert(Chord::getInstance()->Predecessors.begin() + index - 1, node);
+					chord->setPredecessor(index, node, false);
 				}
 			}
 		}
@@ -187,7 +191,7 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 				str >> hex >> key;
 				// find the closest predecessor
 				// return successor of that
-				auto node = Chord::getInstance()->findSuccessor(key);
+				auto node = chord->findSuccessor(key);
 				string msg = node->toString();
 				myRIOBuffer->writeLine(&msg);
 			}
@@ -199,7 +203,7 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 				unsigned int key;
 				str >> hex >> key;
 				// get best option we know of
-				auto node = Chord::getInstance()->findSuccessor(key);
+				auto node = chord->findSuccessor(key);
 
 				while (true) {
 					// check this entry for validity
