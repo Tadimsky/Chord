@@ -88,10 +88,10 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 //		}
 //		else {
 		cout << "Setting Pred's Succ and Succ's Pred" << endl;
-			pred->setSuccessor(NodeInfo.get());
-			successor->setPredecessor(NodeInfo.get());
-			Successors.insert(Successors.begin(), successor);
-			Predecessors.insert(Predecessors.begin(), pred);
+			//pred->setSuccessor(NodeInfo.get());
+			//successor->setPredecessor(NodeInfo.get());
+		setSuccessor(1, successor);
+		setPredecessor(1, pred);
 //		}
 
 	}
@@ -279,5 +279,53 @@ bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclus
 			// equal each other, therefore, fits in here
 			return true;
 		}
+	}
+}
+
+
+
+void Chord::setSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
+	// index starts at 1
+	if (index >  NUM_SUCCESSORS) {
+		// we don't support this
+		cerr << "Tried to set Successor " << index << endl;
+		return;
+	}
+
+	// set our pointer
+	Successors.insert(Successors.begin() + index - 1, node);
+
+	// trim the list to max size (don't want to store more)
+	if (Successors.size() >= NUM_SUCCESSORS) {
+		cerr << "Trimming" << endl;
+		Successors.resize(NUM_SUCCESSORS);
+	}
+
+	// if we should set up a connection to the other side
+	if (setupOther) {
+		node->setPredecessor(NodeInfo.get(), index);
+	}
+}
+
+void Chord::setPredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
+	// index starts at 1
+	if (index >  NUM_PREDECESSORS) {
+		// we don't support this
+		cerr << "Tried to set Predecessor " << index << endl;
+		return;
+	}
+
+	// set our pointer
+	Predecessors.insert(Predecessors.begin() + index - 1, node);
+
+	// trim the list to max size (don't want to store more)
+	if (Predecessors.size() >= NUM_SUCCESSORS) {
+		cerr << "Trimming" << endl;
+		Predecessors.resize(NUM_SUCCESSORS);
+	}
+
+	// if we should set up a connection to the other side
+	if (setupOther) {
+		node->setSuccessor(NodeInfo.get(), index);
 	}
 }

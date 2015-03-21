@@ -28,8 +28,8 @@ private:
 
 
 
-	const int NUM_PREDECESSORS = 2;
-	const int NUM_SUCCESSORS = 2;
+	const size_t NUM_PREDECESSORS = 2;
+	const size_t NUM_SUCCESSORS = 2;
 	const std::string WELCOME_MESSAGE = "Welcome! Who are you?\n";
 	const std::string ERROR_GOODBYE_MESSAGE = "I don't know who you are. Please leave.\n";
 
@@ -69,6 +69,9 @@ public:
 
 	std::shared_ptr<Node> findSuccessor(chord_key key);
 	std::shared_ptr<Node> findPredecessor(chord_key key);
+
+	void setSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
+	void setPredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
 
 	std::tuple<int, int> getRange();
 
