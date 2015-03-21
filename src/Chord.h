@@ -72,6 +72,8 @@ public:
 
 	std::tuple<int, int> getRange();
 
+	static bool inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd = true);
+
 };
 
 #endif /* CHORD_H_ */

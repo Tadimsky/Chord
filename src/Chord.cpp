@@ -71,21 +71,47 @@ Chord::~Chord() {
 }
 
 void Chord::JoinRing(std::string entry_ip, int entry_port) {
-	// do something with this information
+	Node entryNode = Node(entry_ip, entry_port);
+	if (entryNode.Connect()) {
+		// get the successor to connect to
+		auto successor = entryNode.SearchSuccessor(myKey);
+
+		cout << "Successor is " << successor->toString();
+		auto pred = successor->getPredecessor();
+		cout << "Successor's predecessor is " << pred->toString();
+
+		//auto succ = successor->getSuccessor();
+
+		// special case
+//		if (pred->getKey() == successor->getKey()) {
+//
+//		}
+//		else {
+		cout << "Setting Pred's Succ and Succ's Pred" << endl;
+			pred->setSuccessor(NodeInfo.get());
+			successor->setPredecessor(NodeInfo.get());
+			Successors.insert(Successors.begin(), successor);
+			Predecessors.insert(Predecessors.begin(), pred);
+//		}
+
+	}
+	else {
+		cout << "Could not connect to Node." << endl;
+		exit(-1);
+	}
 }
 
 void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	cout << "Processing connection." << endl;
 
-	RIOBuffered connection(socket_fd);
-
+	shared_ptr<RIOBuffered> connection(new RIOBuffered(socket_fd));
 	char msg[256];
 	sprintf(msg, "My ID is %x\n", myKey);
-	connection.writeLine(&(Chord::WELCOME_MESSAGE));
+	connection->writeLine(&(Chord::WELCOME_MESSAGE));
 
 	RIO::writep(socket_fd, (void*) msg, strlen(msg));
 
-	string message = connection.readLine();
+	string message = connection->readLine();
 	stringstream parse(message);
 
 	string command;
@@ -102,7 +128,7 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 			RIO::writeString(socket_fd, &msg);
 		}
 		else {
-			node->processCommunication(&connection);
+			node->processCommunication(connection);
 		}
 	}
 	else if (command.find("Query") == 0) {
@@ -114,7 +140,8 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	}
 
 	shutdown(socket_fd, 0);
-	Close(socket_fd);
+	// don't care about double closing
+	close(socket_fd);
 }
 
 chord_key Chord::hashKey(std::string value) {
@@ -206,7 +233,7 @@ std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
 	// TODO: iterate over the finger table instead of the successor
 	for (int i = Successors.size() - 1; i >= 0; --i) {
 		// key in (current, mySuccessors[i])
-		if (myKey < key && key <= Successors[i]->getKey()) {
+		if (Chord::inRange(myKey, key, Successors[i]->getKey(), false)) {
 			n = Successors[i];
 			return n;
 		}
@@ -225,4 +252,32 @@ std::tuple<int, int> Chord::getRange() {
 		lowerKey = Predecessors[0]->getKey();
 	}
 	return tuple<int, int>(lowerKey, myKey);
+}
+
+bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd) {
+	// need to check if the key is within the ranger lower -> upper
+	// if lower > upper, then it wraps around
+	chord_key max = 0 - 1;
+
+	// we don't wrap around the circle
+	if (upper > lower) {
+		bool part = inclusiveEnd ? key <= upper: key < upper;
+
+		return lower < key && part;
+	}
+	else {
+		if (lower > upper) {
+			// lower less than key < max
+			bool above = lower < key && key <= max;
+
+			bool part = inclusiveEnd ? key <= upper: key < upper;
+			bool wrapped = key >= 0 && part;
+
+			return above || wrapped;
+		}
+		else {
+			// equal each other, therefore, fits in here
+			return true;
+		}
+	}
 }
