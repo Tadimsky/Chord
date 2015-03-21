@@ -51,7 +51,7 @@ void Chord::Listen() {
 		client_len = sizeof(client_addr);
 		newConnection = Accept(myListenFD, (sockaddr*) &client_addr, &client_len);
 
-		cout << "New Connection! " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << endl;
+		cout << "New Connection from " << inet_ntoa(client_addr.sin_addr) << ":" << dec << ntohs(client_addr.sin_port) << endl;
 
 		threads.push_back(
 				thread(&Chord::handleRequest, this, newConnection, client_addr)

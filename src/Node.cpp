@@ -105,7 +105,7 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 			str >> command;
 
 			if (command.compare("SUCCESSOR") == 0) {
-				int index = -1;
+				size_t index = -1;
 				str >> index;
 				string response;
 
@@ -124,7 +124,7 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 				this->send(&response);
 			}
 			else if (command.compare("PREDECESSOR") == 0) {
-					int index;
+					size_t index;
 					str >> index;
 					string response;
 
