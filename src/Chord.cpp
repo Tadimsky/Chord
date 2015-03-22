@@ -117,10 +117,8 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 
 	if (command.compare("Node") == 0) {
 		// Node identification message: Node Key IP:Port
-		string message;
-		getline(parse, message);
 
-		shared_ptr<Node> node = Node::createFromInfo(message);
+		shared_ptr<Node> node = Node::createFromInfo(parse);
 		if (node == nullptr) {
 			string msg("You are using an invalid key.\n");
 			RIO::writeString(socket_fd, &msg);

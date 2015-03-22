@@ -248,13 +248,17 @@ std::tuple<unsigned int, unsigned int> Node::getRange() {
 }
 
 std::shared_ptr<Node> Node::createFromInfo(std::string info) {
+	stringstream data(info);
+	return createFromInfo(data);
+}
+
+std::shared_ptr<Node> Node::createFromInfo(std::stringstream& info) {
 	// this is in the same format as toString
 	unsigned int key;
 	std::string ip;
 	int port;
 
-	stringstream result(info);
-	result >> hex >> key >> ip;
+	info >> hex >> key >> ip;
 
 	// validate key and ip:port
 	// TODO: remove && false

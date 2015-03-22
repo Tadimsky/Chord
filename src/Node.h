@@ -64,6 +64,7 @@ public:
 
 	bool isConnected();
 
+	static std::shared_ptr<Node> createFromInfo(std::stringstream& info);
 	static std::shared_ptr<Node> createFromInfo(std::string info);
 
 	size_t send(const std::string* message);

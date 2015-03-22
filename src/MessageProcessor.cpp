@@ -151,10 +151,7 @@ void MessageProcessor::processInsertNode(std::stringstream& stream, std::string&
 	int index;
 	stream >> index;
 
-	string info;
-	// get the Node info
-	getline(stream, info);
-	auto node = Node::createFromInfo(info);
+	auto node = Node::createFromInfo(stream);
 	if (node->getKey() == myNode->getKey()) {
 		// it is this node trying to make us point to it
 		node = shared_ptr<Node>(myNode);
@@ -171,11 +168,7 @@ void MessageProcessor::processInsertNode(std::stringstream& stream, std::string&
 void MessageProcessor::processReplaceNode(std::stringstream& stream, std::string& item) {
 	int index;
 	stream >> index;
-
-	string info;
-	// get the Node info
-	getline(stream, info);
-	auto node = Node::createFromInfo(info);
+	auto node = Node::createFromInfo(stream);
 	if (node->getKey() == myNode->getKey()) {
 		// it is this node trying to make us point to it
 		node = shared_ptr<Node>(myNode);
