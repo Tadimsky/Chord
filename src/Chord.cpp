@@ -80,20 +80,18 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 		auto pred = successor->getPredecessor();
 		cout << "Successor's predecessor is " << pred->toString();
 
-		//auto succ = successor->getSuccessor();
-
-		// special case
-//		if (pred->getKey() == successor->getKey()) {
-//
-//		}
-//		else {
 		cout << "Setting Pred's Succ and Succ's Pred" << endl;
-			//pred->setSuccessor(NodeInfo.get());
-			//successor->setPredecessor(NodeInfo.get());
+
+		// this needs to happen all the time
+		// works for one in the node, or infinite
 		setSuccessor(1, successor);
 		setPredecessor(1, pred);
-//		}
 
+		// if pred != succ, then we can do this
+		if (successor->getKey() != pred->getKey()) {
+			setSuccessor(2, successor->getSuccessor(1));
+			setPredecessor(2, pred->getPredecessor(1));
+		}
 	}
 	else {
 		cout << "Could not connect to Node." << endl;
@@ -173,6 +171,10 @@ void Chord::init(int port) {
 	myListenPort = port;
 	myKey = Chord::hashKey(myIPAddress + ":" + to_string(myListenPort));
 	NodeInfo = shared_ptr<Node>(new Node(myIPAddress, myListenPort));
+
+	/// init the succ and pred
+	Successors.insert(Successors.begin(), NUM_SUCCESSORS, NodeInfo);
+	Predecessors.insert(Predecessors.begin(), NUM_PREDECESSORS, NodeInfo);
 }
 
 std::string Chord::getLocalIPAddress() {
@@ -216,16 +218,9 @@ std::string Chord::toString() {
 }
 
 std::shared_ptr<Node> Chord::findSuccessor(chord_key key) {
-	if (Successors.size() == 0) {
-		// we have no successors - first node in circle?
-		return NodeInfo;
-	}
-	else {
-		shared_ptr<Node> n;
-		n = findPredecessor(key);
-		return n->getSuccessor();
-	}
-
+	shared_ptr<Node> n;
+	n = findPredecessor(key);
+	return n->getSuccessor();
 }
 
 std::shared_ptr<Node> Chord::findPredecessor(chord_key key) {
@@ -252,6 +247,20 @@ std::tuple<int, int> Chord::getRange() {
 		lowerKey = Predecessors[0]->getKey();
 	}
 	return tuple<int, int>(lowerKey, myKey);
+}
+
+void Chord::LeaveRing() {
+	cout << "Leaving Ring" << endl;
+
+	for (int i = Successors.size() - 1; i >= 0; --i) {
+		auto succ = Successors[i];
+		auto pred = Predecessors[i];
+		// since we're inserting, just insert it at the beginning position.
+		succ->setPredecessor(pred.get(), 1);
+		pred->setSuccessor(succ.get(), 1);
+	}
+	// we're down - quit
+	exit(0);
 }
 
 bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd) {
