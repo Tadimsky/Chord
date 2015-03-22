@@ -252,16 +252,25 @@ void Chord::LeaveRing() {
 
 //	Predecessors[0]->replaceSuccessor(Successors[0].get(), 1);
 //	Successors[0]->replacePredecessor(Predecessors[0].get(), 1);
+
+	// always works
 	Successors[0]->replacePredecessor(Predecessors[0].get(), 1, true);
 
 //	Predecessors[0]->replaceSuccessor(Successors[1].get(), 2);
 //	Successors[1]->replacePredecessor(Predecessors[0].get(), 2);
-	Successors[1]->replacePredecessor(Predecessors[0].get(), 2, true);
+
+	// could tell myself to point to predecessor - wasteful
+	if (Successors[1]->getKey() != myKey) {
+		Successors[1]->replacePredecessor(Predecessors[0].get(), 2, true);
+	}
 
 //	Predecessors[1]->replaceSuccessor(Successors[0].get(), 2);
 //	Successors[0]->replacePredecessor(Predecessors[1].get(), 2);
-	Successors[0]->replacePredecessor(Predecessors[1].get(), 2, true);
 
+	// could tell my next to point to me - bad!
+	if (Predecessors[1]->getKey() != myKey) {
+		Successors[0]->replacePredecessor(Predecessors[1].get(), 2, true);
+	}
 
 //	auto successor = Successors[0];
 //	auto predecessor = Predecessors[0];
@@ -279,6 +288,7 @@ void Chord::LeaveRing() {
 //		}
 //	}
 	// we're down - quit
+	cout << "All set. Cheers Friends." << endl;
 	exit(0);
 }
 

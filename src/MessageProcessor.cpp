@@ -152,10 +152,10 @@ void MessageProcessor::processInsertNode(std::stringstream& stream, std::string&
 	stream >> index;
 
 	auto node = Node::createFromInfo(stream);
-	if (node->getKey() == myNode->getKey()) {
-		// it is this node trying to make us point to it
-		node = shared_ptr<Node>(myNode);
-	}
+//	if (node->getKey() == myNode->getKey()) {
+//		// it is this node trying to make us point to it
+//		node = shared_ptr<Node>(myNode);
+//	}
 	if (item.compare("SUCCESSOR") == 0) {
 		// we don't want to reset up a link to the node.
 		// they just told us to set it up.
@@ -169,10 +169,10 @@ void MessageProcessor::processReplaceNode(std::stringstream& stream, std::string
 	int index;
 	stream >> index;
 	auto node = Node::createFromInfo(stream);
-	if (node->getKey() == myNode->getKey()) {
-		// it is this node trying to make us point to it
-		node = shared_ptr<Node>(myNode);
-	}
+//	if (node->getKey() == myNode->getKey()) {
+//		// it is this node trying to make us point to it
+//		node = shared_ptr<Node>(myNode);
+//	}
 
 	string twoWay;
 	stream >> twoWay;
@@ -184,7 +184,7 @@ void MessageProcessor::processReplaceNode(std::stringstream& stream, std::string
 		// they just told us to set it up.
 		chord->replaceSuccessor(index, node, bi);
 	} else {
-		chord->replaceSuccessor(index, node, bi);
+		chord->replacePredecessor(index, node, bi);
 	}
 }
 
