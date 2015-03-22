@@ -28,8 +28,7 @@ private:
 
 
 
-	const size_t NUM_PREDECESSORS = 2;
-	const size_t NUM_SUCCESSORS = 2;
+	const size_t NUM_PRED_SUCC = 2;
 	const std::string WELCOME_MESSAGE = "Welcome! Who are you?\n";
 	const std::string ERROR_GOODBYE_MESSAGE = "I don't know who you are. Please leave.\n";
 
@@ -44,6 +43,9 @@ private:
 	void handleRequest(int socket_fd, sockaddr_in sockaddr);
 
 	Chord();
+
+	void insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node);
+	void replaceNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node);
 
 public:
 	std::shared_ptr<Node> NodeInfo;
@@ -71,8 +73,11 @@ public:
 	std::shared_ptr<Node> findSuccessor(chord_key key);
 	std::shared_ptr<Node> findPredecessor(chord_key key);
 
-	void setSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
-	void setPredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
+	void insertSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
+	void insertPredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
+
+	void replaceSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
+	void replacePredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
 
 	std::tuple<int, int> getRange();
 

@@ -84,13 +84,13 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 
 		// this needs to happen all the time
 		// works for one in the node, or infinite
-		setSuccessor(1, successor);
-		setPredecessor(1, pred);
+		insertSuccessor(1, successor);
+		insertPredecessor(1, pred);
 
 		// if pred != succ, then we can do this
 		if (successor->getKey() != pred->getKey()) {
-			setSuccessor(2, successor->getSuccessor(1));
-			setPredecessor(2, pred->getPredecessor(1));
+			insertSuccessor(2, successor->getSuccessor(1));
+			insertPredecessor(2, pred->getPredecessor(1));
 		}
 	}
 	else {
@@ -173,8 +173,8 @@ void Chord::init(int port) {
 	NodeInfo = shared_ptr<Node>(new Node(myIPAddress, myListenPort));
 
 	/// init the succ and pred
-	Successors.insert(Successors.begin(), NUM_SUCCESSORS, NodeInfo);
-	Predecessors.insert(Predecessors.begin(), NUM_PREDECESSORS, NodeInfo);
+	Successors.insert(Successors.begin(), NUM_PRED_SUCC, NodeInfo);
+	Predecessors.insert(Predecessors.begin(), NUM_PRED_SUCC, NodeInfo);
 }
 
 std::string Chord::getLocalIPAddress() {
@@ -256,11 +256,41 @@ void Chord::LeaveRing() {
 		auto succ = Successors[i];
 		auto pred = Predecessors[i];
 		// since we're inserting, just insert it at the beginning position.
-		succ->setPredecessor(pred.get(), 1);
-		pred->setSuccessor(succ.get(), 1);
+		succ->insertPredecessor(pred.get(), 1);
+		pred->insertSuccessor(succ.get(), 1);
 	}
 	// we're down - quit
 	exit(0);
+}
+
+void Chord::insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node) {
+	// index starts at 1
+	if (index >  NUM_PRED_SUCC && index > 0) {
+		// we don't support this
+		cerr << "Tried to insert a Node with index not supported: " << index << endl;
+		return;
+	}
+
+	// set our pointer
+	items.insert(items.begin() + index - 1, node);
+
+	// trim the list to max size (don't want to store more)
+	if (items.size() >= NUM_PRED_SUCC) {
+		cerr << "Trimming Vector" << endl;
+		items.resize(NUM_PRED_SUCC);
+	}
+}
+
+void Chord::replaceNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node) {
+	// index starts at 1
+	if (index >  NUM_PRED_SUCC && index > 0) {
+		// we don't support this
+		cerr << "Tried to replace a Node with index not supported: " << index << endl;
+		return;
+	}
+
+	// set our pointer
+	items[index - 1 ] = node;
 }
 
 bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd) {
@@ -293,48 +323,38 @@ bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclus
 
 
 
-void Chord::setSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
-	// index starts at 1
-	if (index >  NUM_SUCCESSORS) {
-		// we don't support this
-		cerr << "Tried to set Successor " << index << endl;
-		return;
-	}
-
-	// set our pointer
-	Successors.insert(Successors.begin() + index - 1, node);
-
-	// trim the list to max size (don't want to store more)
-	if (Successors.size() >= NUM_SUCCESSORS) {
-		cerr << "Trimming" << endl;
-		Successors.resize(NUM_SUCCESSORS);
-	}
+void Chord::insertSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
+	insertNode(index, Successors, node);
 
 	// if we should set up a connection to the other side
 	if (setupOther) {
-		node->setPredecessor(NodeInfo.get(), index);
+		node->insertPredecessor(NodeInfo.get(), index);
 	}
 }
 
-void Chord::setPredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
-	// index starts at 1
-	if (index >  NUM_PREDECESSORS) {
-		// we don't support this
-		cerr << "Tried to set Predecessor " << index << endl;
-		return;
-	}
-
-	// set our pointer
-	Predecessors.insert(Predecessors.begin() + index - 1, node);
-
-	// trim the list to max size (don't want to store more)
-	if (Predecessors.size() >= NUM_SUCCESSORS) {
-		cerr << "Trimming" << endl;
-		Predecessors.resize(NUM_SUCCESSORS);
-	}
+void Chord::insertPredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
+	insertNode(index, Predecessors, node);
 
 	// if we should set up a connection to the other side
 	if (setupOther) {
-		node->setSuccessor(NodeInfo.get(), index);
+		node->insertSuccessor(NodeInfo.get(), index);
+	}
+}
+
+void Chord::replaceSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
+	replaceNode(index, Successors, node);
+
+	// if we should set up a connection to the other side
+	if (setupOther) {
+		node->replacePredecessor(NodeInfo.get(), index);
+	}
+}
+
+void Chord::replacePredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
+	replaceNode(index, Predecessors, node);
+
+	// if we should set up a connection to the other side
+	if (setupOther) {
+		node->replaceSuccessor(NodeInfo.get(), index);
 	}
 }
