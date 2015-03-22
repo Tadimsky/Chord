@@ -52,15 +52,15 @@ public:
 	void insertSuccessor(Node* node, int index = 1);
 	void insertPredecessor(Node* node, int index = 1);
 
-	void replaceSuccessor(Node* node, int index = 1);
-	void replacePredecessor(Node* node, int index = 1);
+	void replaceSuccessor(Node* node, int index = 1, bool twoWay = false);
+	void replacePredecessor(Node* node, int index = 1, bool twoWay = false);
 
 	std::shared_ptr<Node> SearchSuccessor(unsigned int key);
 	std::shared_ptr<Node> FindSuccessor(unsigned int key);
 
 	std::tuple<unsigned int, unsigned int> getRange();
 
-	std::string toString();
+	std::string toString(bool endLine = true);
 
 	bool isConnected();
 

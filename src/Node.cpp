@@ -111,9 +111,10 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 	}
 }
 
-std::string Node::toString() {
+std::string Node::toString(bool endLine) {
 	stringstream result;
-	result << hex << myKey << " " << myIPAddress << ":" << dec << myPort << endl;
+	result << hex << myKey << " " << myIPAddress << ":" << dec << myPort;
+	if (endLine) result << endl;
 	return result.str();
 }
 
@@ -201,22 +202,28 @@ void Node::insertPredecessor(Node* node, int index) {
 	myRIOBuffer->writeLine(&msg);
 }
 
-void Node::replaceSuccessor(Node* node, int index) {
+void Node::replaceSuccessor(Node* node, int index, bool twoWay) {
 	if (!this->isConnected()) {
 		this->Connect();
 	}
 	stringstream s;
-	s << "REPLACE SUCCESSOR " << index << " " << node->toString();
+	s << "REPLACE SUCCESSOR " << index << " " << node->toString(!twoWay);
+	if (twoWay) {
+		s << " TWOWAY" << endl;
+	}
 	string msg = s.str();
 	myRIOBuffer->writeLine(&msg);
 }
 
-void Node::replacePredecessor(Node* node, int index) {
+void Node::replacePredecessor(Node* node, int index, bool twoWay) {
 	if (!this->isConnected()) {
 		this->Connect();
 	}
 	stringstream s;
-	s << "REPLACE PREDECESSOR " << index << " " << node->toString();
+	s << "REPLACE PREDECESSOR " << index << " " << node->toString(!twoWay);
+	if (twoWay) {
+		s << " TWOWAY" << endl;
+	}
 	string msg = s.str();
 	myRIOBuffer->writeLine(&msg);
 }
