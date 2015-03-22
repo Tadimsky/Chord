@@ -180,12 +180,18 @@ void MessageProcessor::processReplaceNode(std::stringstream& stream, std::string
 		// it is this node trying to make us point to it
 		node = shared_ptr<Node>(myNode);
 	}
+
+	string twoWay;
+	stream >> twoWay;
+
+	bool bi = (twoWay.compare("TWOWAY") == 0);
+
 	if (item.compare("SUCCESSOR") == 0) {
 		// we don't want to reset up a link to the node.
 		// they just told us to set it up.
-		chord->replaceSuccessor(index, node, false);
+		chord->replaceSuccessor(index, node, bi);
 	} else {
-		chord->replacePredecessor(index, node, false);
+		chord->replaceSuccessor(index, node, bi);
 	}
 }
 
