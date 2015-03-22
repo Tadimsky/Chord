@@ -252,13 +252,34 @@ std::tuple<int, int> Chord::getRange() {
 void Chord::LeaveRing() {
 	cout << "Leaving Ring" << endl;
 
-	for (int i = Successors.size() - 1; i >= 0; --i) {
-		auto succ = Successors[i];
-		auto pred = Predecessors[i];
-		// since we're inserting, just insert it at the beginning position.
-		succ->insertPredecessor(pred.get(), 1);
-		pred->insertSuccessor(succ.get(), 1);
-	}
+//	Predecessors[0]->replaceSuccessor(Successors[0].get(), 1);
+//	Successors[0]->replacePredecessor(Predecessors[0].get(), 1);
+	Successors[0]->replacePredecessor(Predecessors[0].get(), 1, true);
+
+//	Predecessors[0]->replaceSuccessor(Successors[1].get(), 2);
+//	Successors[1]->replacePredecessor(Predecessors[0].get(), 2);
+	Successors[1]->replacePredecessor(Predecessors[0].get(), 2, true);
+
+//	Predecessors[1]->replaceSuccessor(Successors[0].get(), 2);
+//	Successors[0]->replacePredecessor(Predecessors[1].get(), 2);
+	Successors[0]->replacePredecessor(Predecessors[1].get(), 2, true);
+
+
+//	auto successor = Successors[0];
+//	auto predecessor = Predecessors[0];
+//
+
+//	for (size_t i = 0; i < NUM_PRED_SUCC; ++i) {
+//		auto suc = Successors[i];
+//		auto pred = Predecessors[i];
+//
+//		if (suc->getKey() != myKey) {
+//			suc->replacePredecessor(predecessor.get(), i + 1);
+//		}
+//		if (pred->getKey() != myKey) {
+//			pred->replaceSuccessor(successor.get(), i + 1);
+//		}
+//	}
 	// we're down - quit
 	exit(0);
 }
