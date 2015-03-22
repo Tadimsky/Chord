@@ -10,9 +10,9 @@
 
 #include <string>
 #include <memory>
+#include <sstream>
 #include "Chord.h"
 #include "Node.h"
-
 
 class MessageProcessor {
 private:
@@ -23,9 +23,19 @@ private:
 
 	// faster than calling singleton.
 	std::shared_ptr<Chord> chord;
+
+private:
+
+	void processGetNode(std::stringstream& stream, std::vector<std::shared_ptr<Node>>& items);
+	void processInsertNode(std::stringstream& stream, std::string& item);
+	void processReplaceNode(std::stringstream& stream, std::string& item);
+	void processGetNodes(std::vector<std::shared_ptr<Node>>& items);
+	void processFindSuccessor(std::stringstream& str);
+	void processSearchSuccessor(std::stringstream& str);
+
 public:
 	MessageProcessor(Node* node);
-	void handleMessage(std::string message);
+	bool handleMessage(std::string& message);
 	virtual ~MessageProcessor();
 };
 
