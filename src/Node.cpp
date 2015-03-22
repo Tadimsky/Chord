@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
+#include "MessageProcessor.h"
 #include <tuple>
 
 using namespace std;
@@ -91,6 +92,8 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 	string message(stream.str());
 	this->send(&message);
 
+	MessageProcessor processor(this);
+
 	while (true) {
 		// block until it reads a line.
 		message = this->readLine();
@@ -100,6 +103,10 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 			// we have been shutdown by the other side. Bye!
 			return;
 		}
+
+		processor.handleMessage(message);
+
+
 		stringstream str(message);
 		string command;
 		str >> command;
