@@ -12,10 +12,9 @@
 #include <memory>
 #include "utils/csapp.h"
 
+
 class Node {
 private:
-	const std::string NOT_FOUND = "Item Not Found\n";
-	const std::string EXIT_MSG = "EXIT";
 	std::string myIPAddress;
 	int myPort;
 
@@ -27,7 +26,7 @@ private:
 
 	char buffer[RIO_BUFSIZE];
 	std::string readLine();
-	size_t send(const std::string* message);
+
 
 public:
 	/**
@@ -50,8 +49,11 @@ public:
 	std::shared_ptr<Node> getSuccessor(int index = 1);
 	std::shared_ptr<Node> getPredecessor(int index = 1);
 
-	void setSuccessor(Node* node, int index = 1);
-	void setPredecessor(Node* node, int index = 1);
+	void insertSuccessor(Node* node, int index = 1);
+	void insertPredecessor(Node* node, int index = 1);
+
+	void replaceSuccessor(Node* node, int index = 1);
+	void replacePredecessor(Node* node, int index = 1);
 
 	std::shared_ptr<Node> SearchSuccessor(unsigned int key);
 	std::shared_ptr<Node> FindSuccessor(unsigned int key);
@@ -63,6 +65,13 @@ public:
 	bool isConnected();
 
 	static std::shared_ptr<Node> createFromInfo(std::string info);
+
+	size_t send(const std::string* message);
+};
+
+namespace Messages {
+	const std::string NOT_FOUND = "Item Not Found\n";
+	const std::string EXIT_MSG = "EXIT";
 };
 
 #endif /* SRC_NODE_H_ */
