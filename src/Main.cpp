@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <sha.h>
 #include <memory>
+#include <thread>
 #include "Chord.h"
 
 using namespace std;
@@ -65,13 +66,23 @@ int main(int argc, const char* argv[]) {
 
 	}
 
+	thread listenThread(&Chord::Listen, chord);
+
 	if (!entry_ip.empty() && !entry_port.empty()) {
 		int entry_port_i = atoi(entry_port.c_str());
 		chord->JoinRing(entry_ip, entry_port_i);
 	}
 
-	chord->Listen();
+	// process commands on this node.
+	while (true) {
+		string command;
+		cin >> command;
 
+		if (command.compare("LEAVE") == 0){
+			chord->LeaveRing();
+		}
+
+	}
 	return 0;
 }
 
