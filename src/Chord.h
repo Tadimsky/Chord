@@ -59,6 +59,7 @@ public:
 	void Listen();
 
 	void JoinRing(std::string entry_ip, int entry_port);
+	void LeaveRing();
 
 	static chord_key hashKey(std::string value);
 	static void parseIPPort(std::string message, std::string* ip, int* port);
