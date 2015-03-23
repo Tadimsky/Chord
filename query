@@ -1,1 +1,5 @@
-./Debug/Chord query
+#!/bin/bash
+# This runs the Chord application Query program
+# Run it as query <ip> <port>
+
+./Debug/Chord query $1 $2

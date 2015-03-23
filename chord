@@ -1,0 +1,4 @@
+#!/bin/bash
+# This runs the Chord application 
+
+./Debug/Chord $*
