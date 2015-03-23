@@ -272,3 +272,16 @@ std::shared_ptr<Node> Node::createFromInfo(std::stringstream& info) {
 
 	return shared_ptr<Node>(new Node(ip, port));
 }
+
+bool Node::checkConnection() {
+	if (!isConnected()) {
+		Connect();
+	}
+	size_t bytes = this->send(&(Messages::PING));
+	if (bytes < 0) {
+		return false;
+	}
+
+	string message = this->readLine();
+	return message.find("PONG") == 0;
+}

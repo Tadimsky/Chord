@@ -68,11 +68,15 @@ public:
 	static std::shared_ptr<Node> createFromInfo(std::string info);
 
 	size_t send(const std::string* message);
+
+	bool checkConnection();
 };
 
 namespace Messages {
 	const std::string NOT_FOUND = "Item Not Found\n";
 	const std::string EXIT_MSG = "EXIT";
+	const std::string PING = "PING\n";
+	const std::string PONG = "PONG\n";
 };
 
 #endif /* SRC_NODE_H_ */
