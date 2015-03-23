@@ -112,11 +112,16 @@ int main(int argc, const char* argv[]) {
 
 	// process commands on this node.
 	while (true) {
+		cout << "Welcome to Chord." << endl;
+
 		string command;
 		cin >> command;
 
 		if (command.compare("LEAVE") == 0){
 			chord->LeaveRing();
+		}
+		else {
+			cout << "You can type LEAVE in order to leave the network." << endl;
 		}
 
 	}
