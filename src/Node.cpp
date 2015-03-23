@@ -97,7 +97,7 @@ void Node::processCommunication(std::shared_ptr<RIOBuffered> rio) {
 	while (true) {
 		// block until it reads a line.
 		message = this->readLine();
-		cout << message;
+		//cout << message;
 
 		if (message.length() == 0) {
 			// we have been shutdown by the other side. Bye!
@@ -273,6 +273,14 @@ std::shared_ptr<Node> Node::createFromInfo(std::stringstream& info) {
 	return shared_ptr<Node>(new Node(ip, port));
 }
 
+std::string Node::getIPAddress() {
+	return myIPAddress;
+}
+
+int Node::getPort() {
+	return myPort;
+}
+
 bool Node::checkConnection() {
 	if (!isConnected()) {
 		Connect();
@@ -284,4 +292,18 @@ bool Node::checkConnection() {
 
 	string message = this->readLine();
 	return message.find("PONG") == 0;
+}
+
+std::string Node::getStoredValue(size_t key) {
+	if (!isConnected()) {
+		Connect();
+	}
+	stringstream s;
+	s << "GET VALUE " << hex << key << endl;
+	string str = s.str();
+
+	this->send(&str);
+	str = this->readLine();
+
+	return str;
 }

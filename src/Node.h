@@ -43,6 +43,9 @@ public:
 	bool Connect();
 
 	unsigned int getKey();
+	std::string getIPAddress();
+	int getPort();
+
 
 	void processCommunication(std::shared_ptr<RIOBuffered> rio);
 
@@ -66,6 +69,8 @@ public:
 
 	static std::shared_ptr<Node> createFromInfo(std::stringstream& info);
 	static std::shared_ptr<Node> createFromInfo(std::string info);
+
+	std::string getStoredValue(size_t key);
 
 	size_t send(const std::string* message);
 
