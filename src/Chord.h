@@ -26,7 +26,7 @@ class Chord {
 private:
 	static std::shared_ptr<Chord> myInstance;
 
-
+	const size_t MONITOR_PERIOD = 5000;
 
 	const size_t NUM_PRED_SUCC = 2;
 	const std::string WELCOME_MESSAGE = "Welcome! Who are you?\n";
@@ -46,6 +46,8 @@ private:
 
 	void insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node);
 	void replaceNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node);
+
+	void monitorLinks();
 
 public:
 	std::shared_ptr<Node> NodeInfo;

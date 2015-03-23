@@ -47,15 +47,15 @@ void Chord::Listen() {
 
 	vector<thread> threads;
 
+	thread monitorThread(&Chord::monitorLinks, this);
+
 	while (true) {
 		client_len = sizeof(client_addr);
 		newConnection = Accept(myListenFD, (sockaddr*) &client_addr, &client_len);
 
 		cout << "New Connection from " << inet_ntoa(client_addr.sin_addr) << ":" << dec << ntohs(client_addr.sin_port) << endl;
 
-		threads.push_back(
-				thread(&Chord::handleRequest, this, newConnection, client_addr)
-				);
+		threads.push_back(thread(&Chord::handleRequest, this, newConnection, client_addr));
 	}
 
 }
@@ -92,8 +92,7 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 			insertSuccessor(2, successor->getSuccessor(1));
 			insertPredecessor(2, pred->getPredecessor(1));
 		}
-	}
-	else {
+	} else {
 		cout << "Could not connect to Node." << endl;
 		exit(-1);
 	}
@@ -122,15 +121,12 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 		if (node == nullptr) {
 			string msg("You are using an invalid key.\n");
 			RIO::writeString(socket_fd, &msg);
-		}
-		else {
+		} else {
 			node->processCommunication(connection);
 		}
-	}
-	else if (command.find("Query") == 0) {
+	} else if (command.find("Query") == 0) {
 		//Node n(socket_fd, "", "");
-	}
-	else {
+	} else {
 		RIO::writeString(socket_fd, &(Chord::ERROR_GOODBYE_MESSAGE));
 		cout << "Unknown client connected." << endl;
 	}
@@ -155,8 +151,6 @@ chord_key Chord::hashKey(std::string value) {
 
 	return resultKey;
 }
-
-
 
 std::shared_ptr<Chord> Chord::getInstance() {
 	if (myInstance == nullptr) {
@@ -194,9 +188,8 @@ std::string Chord::getLocalIPAddress() {
 		family = ifa->ifa_addr->sa_family;
 		if (family == AF_INET) {
 			if (strcmp(ifa->ifa_name, "lo") != 0) {
-				s = getnameinfo(ifa->ifa_addr,
-						(family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6),
-								host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+				s = getnameinfo(ifa->ifa_addr, (family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6), host, NI_MAXHOST, NULL,
+						0, NI_NUMERICHOST);
 				if (s != 0) {
 					printf("getnameinfo() failed: %s\n", gai_strerror(s));
 					exit(EXIT_FAILURE);
@@ -267,7 +260,7 @@ void Chord::LeaveRing() {
 
 void Chord::insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node) {
 	// index starts at 1
-	if (index >  NUM_PRED_SUCC || index == 0) {
+	if (index > NUM_PRED_SUCC || index == 0) {
 		// we don't support this
 		cerr << "Tried to insert a Node with index not supported: " << index << endl;
 		return;
@@ -285,18 +278,18 @@ void Chord::insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, 
 
 void Chord::replaceNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node) {
 	// index starts at 1
-	if (index >  NUM_PRED_SUCC || index == 0) {
+	if (index > NUM_PRED_SUCC || index == 0) {
 		// we don't support this
 		cerr << "Tried to replace a Node with index not supported: " << index << endl;
 		return;
 	}
 
 	// set our pointer
-	items[index - 1 ] = node;
+	items[index - 1] = node;
 }
 
 void Chord::spliceSuccessor(size_t index) {
-	if (index > NUM_PRED_SUCC || index == 0){
+	if (index > NUM_PRED_SUCC || index == 0) {
 		return;
 	}
 	// we can't talk to node.
@@ -331,14 +324,13 @@ void Chord::spliceSuccessor(size_t index) {
 	if (index == 1) {
 		replaceNode(1, Successors, other);
 		replaceNode(2, Successors, newSuccessor);
-	}
-	else if (index == 2) {
+	} else if (index == 2) {
 		replaceNode(2, Successors, newSuccessor);
 	}
 }
 
 void Chord::splicePredecessor(size_t index) {
-	if (index > NUM_PRED_SUCC || index == 0){
+	if (index > NUM_PRED_SUCC || index == 0) {
 		return;
 	}
 	// we can't talk to node.
@@ -376,6 +368,35 @@ void Chord::splicePredecessor(size_t index) {
 	replaceNode(2, Predecessors, newPred);
 }
 
+void Chord::monitorLinks() {
+	while (true) {
+		// check successors
+		for (size_t i = 0; i < Successors.size(); ++i) {
+			auto node = Successors[i];
+			if (node->getKey() == myKey)
+				continue;
+
+			if (!node->checkConnection()) {
+				cout << "Error with Successor " << i + 1 << endl;
+				spliceSuccessor(i + 1);
+			}
+		}
+
+		// check predecessors
+		for (size_t i = 0; i < Predecessors.size(); ++i) {
+			auto node = Predecessors[i];
+			if (node->getKey() == myKey)
+				continue;
+			if (!node->checkConnection()) {
+				cout << "Error with Predecessor " << i + 1 << endl;
+				splicePredecessor(i + 1);
+			}
+		}
+
+		this_thread::sleep_for(std::chrono::milliseconds(MONITOR_PERIOD));
+	}
+}
+
 bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd) {
 	// need to check if the key is within the ranger lower -> upper
 	// if lower > upper, then it wraps around
@@ -383,28 +404,24 @@ bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclus
 
 	// we don't wrap around the circle
 	if (upper > lower) {
-		bool part = inclusiveEnd ? key <= upper: key < upper;
+		bool part = inclusiveEnd ? key <= upper : key < upper;
 
 		return lower < key && part;
-	}
-	else {
+	} else {
 		if (lower > upper) {
 			// lower less than key < max
 			bool above = lower < key && key <= max;
 
-			bool part = inclusiveEnd ? key <= upper: key < upper;
+			bool part = inclusiveEnd ? key <= upper : key < upper;
 			bool wrapped = key >= 0 && part;
 
 			return above || wrapped;
-		}
-		else {
+		} else {
 			// equal each other, therefore, fits in here
 			return true;
 		}
 	}
 }
-
-
 
 void Chord::insertSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther) {
 	insertNode(index, Successors, node);
