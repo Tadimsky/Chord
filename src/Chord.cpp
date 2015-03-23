@@ -232,12 +232,12 @@ void Chord::parseIPPort(std::string message, std::string* ip, int* port) {
 	*ip = message.substr(0, message.find(":"));
 }
 
-std::tuple<int, int> Chord::getRange() {
+std::tuple<chord_key, chord_key> Chord::getRange() {
 	int lowerKey = myKey;
 	if (Predecessors.size() > 0) {
 		lowerKey = Predecessors[0]->getKey();
 	}
-	return tuple<int, int>(lowerKey, myKey);
+	return tuple<chord_key, chord_key>(lowerKey, myKey);
 }
 
 void Chord::LeaveRing() {
@@ -307,7 +307,7 @@ void Chord::spliceSuccessor(size_t index) {
 
 	std::shared_ptr<Node> newSuccessor;
 
-	for (int i = 1; i <= NUM_PRED_SUCC; i++) {
+	for (size_t i = 1; i <= NUM_PRED_SUCC; i++) {
 		auto n = other->getSuccessor(i);
 
 		// don't want to get the one we're removing of course

@@ -88,7 +88,7 @@ public:
 	void spliceSuccessor(size_t index);
 	void splicePredecessor(size_t index);
 
-	std::tuple<int, int> getRange();
+	std::tuple<chord_key, chord_key> getRange();
 
 	static bool inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd = true);
 
