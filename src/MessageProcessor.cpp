@@ -52,7 +52,6 @@ void MessageProcessor::processSearchSuccessor(stringstream& str) {
 		// check this entry for validity
 		// pred is less than key
 		auto pred = node->getPredecessor();
-		cout << "Key Range (" << hex << pred->getKey() << ", " << hex << node->getKey() << "]" << endl;
 		// check if key between predecessor and provided successor
 		if (Chord::inRange(pred->getKey(), node->getKey(), key)) {
 			// if so, then this is the successor!

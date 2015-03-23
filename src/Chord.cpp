@@ -73,14 +73,15 @@ Chord::~Chord() {
 void Chord::JoinRing(std::string entry_ip, int entry_port) {
 	Node entryNode = Node(entry_ip, entry_port);
 	if (entryNode.Connect()) {
+		cout << "Joining the Chord ring." << endl;
+		cout << "Your position is " << hex << myKey << "." << endl;
+
 		// get the successor to connect to
 		auto successor = entryNode.SearchSuccessor(myKey);
 
-		cout << "Successor is " << successor->toString();
+		cout << "Your successor is " << successor->toString();
 		auto pred = successor->getPredecessor();
-		cout << "Successor's predecessor is " << pred->toString();
-
-		cout << "Setting Pred's Succ and Succ's Pred" << endl;
+		cout << "Your predecessor is " << pred->toString();
 
 		// this needs to happen all the time
 		// works for one in the node, or infinite
@@ -99,7 +100,7 @@ void Chord::JoinRing(std::string entry_ip, int entry_port) {
 }
 
 void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
-	cout << "Processing connection." << endl;
+	// cout << "Processing connection." << endl;
 
 	shared_ptr<RIOBuffered> connection(new RIOBuffered(socket_fd));
 
