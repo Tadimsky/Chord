@@ -79,6 +79,13 @@ public:
 	void replaceSuccessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
 	void replacePredecessor(size_t index, std::shared_ptr<Node> node, bool setupOther = true);
 
+	/**
+	 * Remove a successor that is not responding to us anymore. We don't want to talk to him anymore.
+	 * We only clean up ourselves, not anybody else who may talk to it. They will clean it up themselves later on.
+	 */
+	void spliceSuccessor(size_t index);
+	void splicePredecessor(size_t index);
+
 	std::tuple<int, int> getRange();
 
 	static bool inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd = true);

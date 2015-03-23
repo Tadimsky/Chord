@@ -267,7 +267,7 @@ void Chord::LeaveRing() {
 
 void Chord::insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node) {
 	// index starts at 1
-	if (index >  NUM_PRED_SUCC && index > 0) {
+	if (index >  NUM_PRED_SUCC || index == 0) {
 		// we don't support this
 		cerr << "Tried to insert a Node with index not supported: " << index << endl;
 		return;
@@ -285,7 +285,7 @@ void Chord::insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, 
 
 void Chord::replaceNode(size_t index, std::vector<std::shared_ptr<Node>>& items, std::shared_ptr<Node> node) {
 	// index starts at 1
-	if (index >  NUM_PRED_SUCC && index > 0) {
+	if (index >  NUM_PRED_SUCC || index == 0) {
 		// we don't support this
 		cerr << "Tried to replace a Node with index not supported: " << index << endl;
 		return;
@@ -293,6 +293,87 @@ void Chord::replaceNode(size_t index, std::vector<std::shared_ptr<Node>>& items,
 
 	// set our pointer
 	items[index - 1 ] = node;
+}
+
+void Chord::spliceSuccessor(size_t index) {
+	if (index > NUM_PRED_SUCC || index == 0){
+		return;
+	}
+	// we can't talk to node.
+	auto node = Successors[index - 1];
+	if (node->getKey() == myKey) {
+		// this doesn't make sense
+		return;
+	}
+	// we need to get information from the successor that hasn't failed
+	// what if they are already updated?
+	// get both at the same time - check if value is already changed
+
+	size_t otherIndex = NUM_PRED_SUCC - index; // ((index + NUM_PRED_SUCC - 1) % NUM_PRED_SUCC) + 1;
+	auto other = Successors[otherIndex];
+
+	std::shared_ptr<Node> newSuccessor;
+
+	for (int i = 1; i <= NUM_PRED_SUCC; i++) {
+		auto n = other->getSuccessor(i);
+
+		// don't want to get the one we're removing of course
+		if (n->getKey() != node->getKey()) {
+			newSuccessor = n;
+			break;
+		}
+	}
+
+	if (newSuccessor.get() == nullptr) {
+		cerr << "WHAT" << endl;
+	}
+
+	if (index == 1) {
+		replaceNode(1, Successors, other);
+		replaceNode(2, Successors, newSuccessor);
+	}
+	else if (index == 2) {
+		replaceNode(2, Successors, newSuccessor);
+	}
+}
+
+void Chord::splicePredecessor(size_t index) {
+	if (index > NUM_PRED_SUCC || index == 0){
+		return;
+	}
+	// we can't talk to node.
+	auto node = Predecessors[index - 1];
+	if (node->getKey() == myKey) {
+		// this doesn't make sense
+		return;
+	}
+	// we need to get information from the successor that hasn't failed
+	// what if they are already updated?
+	// get both at the same time - check if value is already changed
+
+	size_t otherIndex = NUM_PRED_SUCC - index; // ((index + NUM_PRED_SUCC - 1) % NUM_PRED_SUCC) + 1;
+	auto other = Predecessors[otherIndex];
+
+	std::shared_ptr<Node> newPred;
+
+	for (size_t i = 1; i <= NUM_PRED_SUCC; i++) {
+		auto n = other->getPredecessor(i);
+
+		// don't want to get the one we're removing of course
+		if (n->getKey() != node->getKey()) {
+			newPred = n;
+			break;
+		}
+	}
+
+	if (newPred.get() == nullptr) {
+		cerr << "WHAT" << endl;
+	}
+
+	if (index == 1) {
+		replaceNode(1, Predecessors, other);
+	}
+	replaceNode(2, Predecessors, newPred);
 }
 
 bool Chord::inRange(chord_key lower, chord_key upper, chord_key key, bool inclusiveEnd) {
