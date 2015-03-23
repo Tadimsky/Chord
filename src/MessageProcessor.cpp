@@ -21,6 +21,18 @@ MessageProcessor::MessageProcessor(Node* node) {
 	chord = Chord::getInstance();
 }
 
+void MessageProcessor::processSpliceNode(stringstream& str, std::string& command) {
+	unsigned int index;
+	str >> index;
+
+	if (command.compare("SUCCESSOR") == 0) {
+		chord->spliceSuccessor(index);
+	}
+	else {
+		chord->splicePredecessor(index);
+	}
+}
+
 void MessageProcessor::processFindSuccessor(stringstream& str) {
 	unsigned int key;
 	str >> hex >> key;
@@ -102,6 +114,16 @@ bool MessageProcessor::handleMessage(std::string& message) {
 		str >> command;
 		if (command.compare("SUCCESSOR") == 0) {
 			processFindSuccessor(str);
+		}
+	}
+	else if (command.compare("SPLICE") == 0) {
+		str >> command;
+		if (command.compare("SUCCESSOR") == 0) {
+			processSpliceNode(str, command);
+		}
+		if (command.compare("PREDECESSOR") == 0) {
+			// TODO:
+			processSpliceNode(str, command);
 		}
 	}
 	// Find queries

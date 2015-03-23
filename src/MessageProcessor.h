@@ -33,6 +33,8 @@ private:
 	void processFindSuccessor(std::stringstream& str);
 	void processSearchSuccessor(std::stringstream& str);
 
+	void processSpliceNode(std::stringstream& str, std::string& command);
+
 public:
 	MessageProcessor(Node* node);
 	bool handleMessage(std::string& message);
