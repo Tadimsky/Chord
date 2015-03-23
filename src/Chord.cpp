@@ -250,43 +250,16 @@ std::tuple<int, int> Chord::getRange() {
 void Chord::LeaveRing() {
 	cout << "Leaving Ring" << endl;
 
-//	Predecessors[0]->replaceSuccessor(Successors[0].get(), 1);
-//	Successors[0]->replacePredecessor(Predecessors[0].get(), 1);
-
-	// always works
 	Successors[0]->replacePredecessor(Predecessors[0].get(), 1, true);
-
-//	Predecessors[0]->replaceSuccessor(Successors[1].get(), 2);
-//	Successors[1]->replacePredecessor(Predecessors[0].get(), 2);
-
 	// could tell myself to point to predecessor - wasteful
 	if (Successors[1]->getKey() != myKey) {
 		Successors[1]->replacePredecessor(Predecessors[0].get(), 2, true);
 	}
-
-//	Predecessors[1]->replaceSuccessor(Successors[0].get(), 2);
-//	Successors[0]->replacePredecessor(Predecessors[1].get(), 2);
-
 	// could tell my next to point to me - bad!
 	if (Predecessors[1]->getKey() != myKey) {
 		Successors[0]->replacePredecessor(Predecessors[1].get(), 2, true);
 	}
 
-//	auto successor = Successors[0];
-//	auto predecessor = Predecessors[0];
-//
-
-//	for (size_t i = 0; i < NUM_PRED_SUCC; ++i) {
-//		auto suc = Successors[i];
-//		auto pred = Predecessors[i];
-//
-//		if (suc->getKey() != myKey) {
-//			suc->replacePredecessor(predecessor.get(), i + 1);
-//		}
-//		if (pred->getKey() != myKey) {
-//			pred->replaceSuccessor(successor.get(), i + 1);
-//		}
-//	}
 	// we're down - quit
 	cout << "All set. Cheers Friends." << endl;
 	exit(0);

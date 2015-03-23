@@ -8,10 +8,18 @@
 #include <cstdio>
 #include <sha.h>
 #include <memory>
+#include <signal.h>
 #include <thread>
 #include "Chord.h"
 
 using namespace std;
+
+void handleSignal(int signal) {
+	cout << "Received signal: " << signal << endl;
+	// get out before we quit
+	Chord::getInstance()->LeaveRing();
+	exit(EXIT_SUCCESS);
+}
 
 void showUsageMessage(string procname) {
 	cerr << "To run Chord, you need to provide a port to listen on." << endl;
@@ -72,6 +80,15 @@ int main(int argc, const char* argv[]) {
 		int entry_port_i = atoi(entry_port.c_str());
 		chord->JoinRing(entry_ip, entry_port_i);
 	}
+
+	// setup signal handler
+	struct sigaction signal;
+	signal.sa_handler = handleSignal;
+	sigemptyset(&(signal.sa_mask));
+	signal.sa_flags = SA_RESTART;
+
+	sigaction(SIGINT, &signal, NULL);
+	sigaction(SIGTERM, &signal, NULL);
 
 	// process commands on this node.
 	while (true) {
