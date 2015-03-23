@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <thread>
 #include "Chord.h"
+#include "query/Query.h"
 
 using namespace std;
 
@@ -31,14 +32,15 @@ void showUsageMessage(string procname) {
 	cerr << "\t" << procname
 			<< " port [entry point IP address] [entry point port]" << endl;
 	cerr << "\tExample: " << procname << " 8001 128.2.205.42 8010" << endl;
+	cerr << endl;
+	cerr << "Alternatively, you can run " << procname << " query ip port" << endl;
+	cerr << "\t This will allow you to interact with the Chord network" << endl;
 	exit(1);
 }
 
 int main(int argc, const char* argv[]) {
 	string port;
 	string entry_ip, entry_port;
-
-	shared_ptr<Chord> chord;
 
 	int listen_port;
 
@@ -50,6 +52,23 @@ int main(int argc, const char* argv[]) {
 	if (argc > 1) {
 		port = argv[1];
 	}
+
+	if (port.find("query") == 0) {
+		// this is a call to query;
+		if (argc == 4) {
+			entry_ip = argv[2];
+			entry_port = argv[3];
+
+			Query::Query q(entry_ip, entry_port);
+			q.Start();
+		}
+		else {
+			showUsageMessage(argv[0]);
+		}
+
+		return 0;
+	}
+
 	// connecting to an entry point
 	if (argc > 2) {
 		entry_ip = argv[2];
@@ -65,6 +84,7 @@ int main(int argc, const char* argv[]) {
 
 	listen_port = atoi(port.c_str());
 
+	shared_ptr<Chord> chord;
 	chord = Chord::getInstance();
 	if (chord != nullptr) {
 		chord->init(listen_port);
