@@ -53,7 +53,7 @@ void Chord::Listen() {
 		client_len = sizeof(client_addr);
 		newConnection = Accept(myListenFD, (sockaddr*) &client_addr, &client_len);
 
-		cout << "New Connection from " << inet_ntoa(client_addr.sin_addr) << ":" << dec << ntohs(client_addr.sin_port) << endl;
+		// cout << "New Connection from " << inet_ntoa(client_addr.sin_addr) << ":" << dec << ntohs(client_addr.sin_port) << endl;
 
 		threads.push_back(thread(&Chord::handleRequest, this, newConnection, client_addr));
 	}
@@ -102,11 +102,14 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 	cout << "Processing connection." << endl;
 
 	shared_ptr<RIOBuffered> connection(new RIOBuffered(socket_fd));
-	char msg[256];
-	sprintf(msg, "My ID is %x\n", myKey);
+
+	stringstream msg;
+	msg << "My ID is " <<  hex << myKey << endl;
+
 	connection->writeLine(&(Chord::WELCOME_MESSAGE));
 
-	RIO::writep(socket_fd, (void*) msg, strlen(msg));
+	string s = msg.str();
+	RIO::writeString(socket_fd, &s);
 
 	string message = connection->readLine();
 	stringstream parse(message);
@@ -125,7 +128,8 @@ void Chord::handleRequest(int socket_fd, sockaddr_in sockaddr) {
 			node->processCommunication(connection);
 		}
 	} else if (command.find("Query") == 0) {
-		//Node n(socket_fd, "", "");
+		// queries are just nodes that have wrong ip addresses
+		// qu
 	} else {
 		RIO::writeString(socket_fd, &(Chord::ERROR_GOODBYE_MESSAGE));
 		cout << "Unknown client connected." << endl;
@@ -271,7 +275,6 @@ void Chord::insertNode(size_t index, std::vector<std::shared_ptr<Node>>& items, 
 
 	// trim the list to max size (don't want to store more)
 	if (items.size() >= NUM_PRED_SUCC) {
-		cerr << "Trimming Vector" << endl;
 		items.resize(NUM_PRED_SUCC);
 	}
 }
