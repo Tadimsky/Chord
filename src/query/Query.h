@@ -16,6 +16,8 @@ namespace Query {
 class Query {
 private:
 	std::unique_ptr<Node> myNode;
+
+	static std::string formatNodeOutput(Node* n);
 public:
 	Query(std::string ip, std::string port);
 	virtual ~Query();

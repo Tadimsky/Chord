@@ -18,7 +18,7 @@ Query::Query(std::string ip, std::string port) {
 	int portN = stoi(port);
 	myNode = unique_ptr<Node>(new Node(ip, portN));
 	if (myNode->Connect()) {
-		cout << "Connected to node " << ip <<", port " << portN << ", position " << hex << myNode->getKey() << endl;
+		cout << "Connected to " << Query::formatNodeOutput(myNode.get()) << "." <<  endl;
 	}
 	else {
 		cout << "Could not connect to Node." << endl;
@@ -28,6 +28,12 @@ Query::Query(std::string ip, std::string port) {
 
 Query::~Query() {
 	// TODO Auto-generated destructor stub
+}
+
+std::string Query::formatNodeOutput(Node* n) {
+	stringstream s;
+	s << "node " << n->getIPAddress() <<", port " << n->getPort() << ", position " << hex << n->getKey();
+	return s.str();
 }
 
 void Query::Start() {
@@ -47,6 +53,10 @@ void Query::Start() {
 			size_t hash = Chord::hashKey(command);
 			cout << "Hash value: " << hex << hash << endl;
 			auto dataHost = myNode->SearchSuccessor(hash);
+
+			string response = dataHost->getStoredValue(hash);
+			cout << "Response from " << Query::formatNodeOutput(dataHost.get()) << ":" << endl;
+			cout << response;
 		}
 		cout << endl;
 	}
