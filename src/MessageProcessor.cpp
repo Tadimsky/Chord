@@ -94,8 +94,9 @@ bool MessageProcessor::handleMessage(std::string& message) {
 			msg_s << hex << get<0>(range) << " " << hex << get<1>(range) << endl;
 			string msg(msg_s.str());
 			myNode->send(&msg);
+		} else if (command.compare("VALUE") == 0) {
+			processGetValue(str);
 		}
-
 	}
 	else if (command.compare("INSERT") == 0) {
 		str >> command;
@@ -213,7 +214,22 @@ void MessageProcessor::processReplaceNode(std::stringstream& stream, std::string
 	}
 }
 
+void MessageProcessor::processGetValue(std::stringstream& stream) {
+	size_t key;
+	stream >> hex >> key;
 
+	auto range = chord->getRange();
+	string message;
+
+	if (Chord::inRange(get<0>(range), get<1>(range), key)) {
+		 message = "Not found.\n";
+
+	}
+	else {
+		message = "This node does not own this key.\n";
+	}
+	myNode->send(&message);
+}
 
 MessageProcessor::~MessageProcessor() {
 	// TODO Auto-generated destructor stub
