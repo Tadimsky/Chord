@@ -139,7 +139,10 @@ bool MessageProcessor::handleMessage(std::string& message) {
 		return false;
 	} else if (command.compare("LEAVE") == 0) {
 		chord->LeaveRing();
-	} else {
+	} else if (command.compare("PING") == 0) {
+		myNode->send(&(Messages::PONG));
+	}
+	else {
 		cout << "Unknown Request: " << message;
 	}
 	return true;
